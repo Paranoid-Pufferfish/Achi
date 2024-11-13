@@ -1,7 +1,15 @@
-project('Achi', 'c',
-        version : '1.0.0',
-        default_options : ['warning_level=3', 'c_std=c2x'])
+project(
+        'Achi',
+        'c',
+        version: '0.1',
+        default_options: ['warning_level=3','c_std=c2x']
+)
 
-Achi = executable('Achi', 'main.c', install : true)
+raylib_dep = dependency('raylib', version: '>=5.0')
 
-test('test', Achi)
+executable(
+        'Achi',
+        'main.c',
+        dependencies: raylib_dep,
+        install: true
+)
