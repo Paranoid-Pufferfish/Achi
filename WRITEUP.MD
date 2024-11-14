@@ -16,7 +16,7 @@ typedef struct board {
     node *nodes[9];
 }board;
 ```
-![Structs.png](src/schemes/Structs.png)
+![Structs.png](media/schemes/Structs.png)
 
 Note : We could've used a Linked List for adjacent nodes, and also only keep track of the first node in the `board` variable,
 but the added complexity overweight's any actual benefit.
