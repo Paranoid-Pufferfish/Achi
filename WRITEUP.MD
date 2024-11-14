@@ -1,10 +1,8 @@
 # Achi game writeup
 ## Technologies Used
-This project uses *[meson 1.5.2](https://github.com/mesonbuild/meson)* as a build system, *[C23](https://en.wikipedia.org/wiki/C23_(C_standard_revision))*, and *[raylib master branch](https://github.com/raysan5/raylib)*.
+This project uses *[meson 1.5.2](https://github.com/mesonbuild/meson)* as a build system, *[C23](https://en.wikipedia.org/wiki/C23_(C_standard_revision))*, and **MAYBE** *[raylib master branch](https://github.com/raysan5/raylib)*.
 
 Developed on both *[Ubuntu 24.10](https://ubuntu.com/)* and *[Gentoo Linux](https://www.gentoo.org/)*
-
-
 ## Data Structures used
 ```c++
 typedef struct node {
