@@ -14,16 +14,5 @@ typedef struct board {
     int turn;
     node *nodes[9];
 }board;
-constexpr int adjacencyMatrix[9][2] {
-    {1,3},
-    {0,2},
-    {1,5},
-    {0,6},
-    {4,4}, // Place holder
-    {2,8},
-    {3,7},
-    {6,8},
-    {7,5}
-};
 board initBoard();
 #endif //ACHI_BOARD_H

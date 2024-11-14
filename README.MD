@@ -4,5 +4,5 @@
 
 # Authors :
 
-- AIT MEDDOUR Fouâd-Eddine (G1)
-- MOUHOUS Mathya (G3)
+- [AIT MEDDOUR Fouâd-Eddine (G1)](https://github.com/Paranoid-Pufferfish)
+- [MOUHOUS Mathya (G3)](https://github.com/MathyazSnoozin)
