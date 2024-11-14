@@ -21,7 +21,6 @@ const int adjacencyMatrix[9][2] = {
   6 7 8
 */
 board initBoard() {
-
     board board;
     board.win = 0;
     board.turn = -1;
