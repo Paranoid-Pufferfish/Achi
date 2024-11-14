@@ -1,6 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
-
 #include "achi_board.h"
 
 int main(void) {

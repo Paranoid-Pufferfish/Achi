@@ -25,7 +25,7 @@ board initBoard() {
     board.win = 0;
     board.turn = -1;
     for (int i = 0; i < 9; ++i) {
-        node *tempnode = malloc(sizeof(node));
+        node *tempnode = calloc(1,sizeof(node));
         tempnode->index = i;
         tempnode->occupiedBy = -1;
         board.nodes[i] = tempnode;
