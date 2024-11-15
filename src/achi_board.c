@@ -25,7 +25,8 @@ board initBoard() {
     board.win = 0;
     board.turn = -1;
     board.nodes = calloc(9, sizeof(node));
-
+    if (board.nodes == NULL)
+        exit(EXIT_FAILURE);
     for (int i = 0; i < 9; ++i) {
         board.nodes[i].index = i;
         board.nodes[i].occupiedBy = -1;
