@@ -24,21 +24,21 @@ board initBoard() {
     board board;
     board.win = 0;
     board.turn = -1;
+    node *tempnode = calloc(9, sizeof(node));
+    board.nodes = tempnode;
     for (int i = 0; i < 9; ++i) {
-        node *tempnode = calloc(1, sizeof(node));
-        tempnode->index = i;
-        tempnode->occupiedBy = -1;
-        board.nodes[i] = tempnode;
+        board.nodes[i].index = i;
+        board.nodes[i].occupiedBy = -1;
     }
     for (int i = 0; i < 9; ++i) {
         if (i != 4) {
-            board.nodes[i]->adjacent[0] = board.nodes[adjacencyMatrix[i][0]];
-            board.nodes[i]->adjacent[1] = board.nodes[adjacencyMatrix[i][1]];
-            board.nodes[i]->adjacent[2] = board.nodes[4];
+            board.nodes[i].adjacent[0] = &board.nodes[adjacencyMatrix[i][0]];
+            board.nodes[i].adjacent[1] = &board.nodes[adjacencyMatrix[i][1]];
+            board.nodes[i].adjacent[2] = &board.nodes[4];
             if (i < 4)
-                board.nodes[4]->adjacent[i] = board.nodes[i];
+                board.nodes[4].adjacent[i] = &board.nodes[i];
             else
-                board.nodes[4]->adjacent[i - 1] = board.nodes[i];
+                board.nodes[4].adjacent[i - 1] = &board.nodes[i];
         }
     }
     return board;

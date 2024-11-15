@@ -14,7 +14,7 @@ typedef struct node {
 typedef struct board {
     bool win;
     int turn;
-    node *nodes[9];
+    node *nodes;
 } board;
 
 board initBoard();
