@@ -35,7 +35,7 @@ tree initTree(const int n, const int index, int used[], int size) {
     }
     else {
         for (int i = 0; i < 9; ++i) {
-            currentTree->next[0] = &successNode;
+            currentTree->next[0] = &tieNode;
         }
     }
 
