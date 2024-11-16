@@ -7,6 +7,7 @@
 
 typedef struct tree_node {
     int index;
+    int rank;
     struct tree_node *next[9];
 } tree_node;
 

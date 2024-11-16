@@ -18,7 +18,7 @@ int main(void) {
     }
     free(board.nodes);*/
     tree tree = initTree(0, -1);
-    printf("Game: %d->%d->%d->%d->%d->%d->%d", tree->index,
+    printf("Game:   %d->%d->%d->%d->%d->%d->%d", tree->index,
            tree->next[0]->index,
            tree->next[0]->next[0]->index,
            tree->next[0]->next[0]->next[0]->index,

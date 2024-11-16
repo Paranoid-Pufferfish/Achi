@@ -11,6 +11,7 @@
 tree initTree(int n, int index) {
     tree currentTree = malloc(sizeof(tree_node));
     currentTree->index = index;
+    currentTree->rank = n;
     if (n < 6) {
         if (index == -1) {
             for (int i = 0; i < 9; ++i) {
