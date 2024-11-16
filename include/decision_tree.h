@@ -13,5 +13,5 @@ typedef struct tree_node {
 
 typedef tree_node *tree;
 
-tree initTree(int n, int index);
+tree initTree(int n, int index, int used[], int size);
 #endif //DECISION_TREE_H
