@@ -7,7 +7,7 @@ project(
 
 raylib_dep = dependency('raylib', version: '>=5.0')
 incdir = include_directories('include')
-src_files = files('main.c', 'src/achi_board.c')
+src_files = files('main.c', 'src/achi_board.c', 'src/decision_tree.c')
 executable(
         'Achi',
         src_files,

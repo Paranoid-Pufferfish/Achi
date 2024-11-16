@@ -1,8 +1,11 @@
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "achi_board.h"
+#include "decision_tree.h"
 
 int main(void) {
-    const board board = initBoard();
+    /*const board board = initBoard();
 
     for (int i = 0; i < 9; ++i) {
         printf("Adjacent to Node %d :{", board.nodes[i].index);
@@ -12,6 +15,16 @@ int main(void) {
                 printf(",");
         }
         printf("}\n");
+    }
+    free(board.nodes);*/
+    tree tree = initTree(0, -1);
+    printf("Parent: %d \nKids: ", tree->index);
+    for (int i = 0; i < 9; ++i) {
+        printf("%d ", tree->next[i]->index);
+    }
+    printf("\nGrandKids from %d: ", tree->next[3]->index);
+    for (int i = 0; i < 7; ++i) {
+        printf("%d ", tree->next[3]->next[i]->index);
     }
     return 0;
 }
