@@ -7,11 +7,9 @@
 
 typedef struct tree_node {
     int index;
-    int rank;
     struct tree_node *next[9];
 } tree_node;
 
 typedef tree_node *tree;
-
 tree initTree(int n, int index, int used[], int size);
 #endif //DECISION_TREE_H
