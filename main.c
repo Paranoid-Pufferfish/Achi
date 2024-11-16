@@ -18,13 +18,12 @@ int main(void) {
     }
     free(board.nodes);*/
     tree tree = initTree(0, -1);
-    printf("Parent: %d \nKids: ", tree->index);
-    for (int i = 0; i < 9; ++i) {
-        printf("%d ", tree->next[i]->index);
-    }
-    printf("\nGrandKids from %d: ", tree->next[3]->index);
-    for (int i = 0; i < 7; ++i) {
-        printf("%d ", tree->next[3]->next[i]->index);
-    }
+    printf("Game: %d->%d->%d->%d->%d->%d->%d", tree->index,
+           tree->next[0]->index,
+           tree->next[0]->next[0]->index,
+           tree->next[0]->next[0]->next[0]->index,
+           tree->next[0]->next[0]->next[0]->next[0]->index,
+           tree->next[0]->next[0]->next[0]->next[0]->next[0]->index,
+           tree->next[0]->next[0]->next[0]->next[0]->next[0]->next[0]->index);
     return 0;
 }
