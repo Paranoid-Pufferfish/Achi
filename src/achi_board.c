@@ -28,6 +28,7 @@ board initBoard() {
     if (board.nodes == NULL)
         exit(EXIT_FAILURE);
     for (int i = 0; i < 9; ++i) {
+        board.nodes[i].index = i;
         board.nodes[i].occupiedBy = -1;
     }
     for (int i = 0; i < 9; ++i) {
@@ -60,28 +61,79 @@ void outputBoard(const board *playingBoard) {
     }
 }
 
-void playMove(board *const playingBoard, const int place) {
+int playMove(board *const playingBoard, const int place) {
     if (playingBoard->nodes[place].occupiedBy != -1) {
         printf("Illegal move!!!\n");
-        return;
+        return 0;
     }
     if (playingBoard->turn == 1) {
         printf("Placing Y in %d\n", place);
         playingBoard->nodes[place].occupiedBy = 1;
         playingBoard->turn = 0;
-    } else {
-        printf("Placing X in %d\n", place);
-        playingBoard->nodes[place].occupiedBy = 0;
-        playingBoard->turn = 1;
+        return 1;
     }
+    printf("Placing X in %d\n", place);
+    playingBoard->nodes[place].occupiedBy = 0;
+    playingBoard->turn = 1;
+    return 1;
+}
+int movePiece(board *const playingBoard, const int initPlace, const int finalPlace) {
+    if (initPlace == finalPlace) {
+        printf("Cant keep piece in one place!\n");
+        return 0;
+    }
+    if (playingBoard->turn != playingBoard->nodes[initPlace].occupiedBy) {
+        printf("Not your piece !\n");
+        return 0;
+    }
+    if (playingBoard->nodes[finalPlace].occupiedBy != -1) {
+        printf("Place occupied!\n");
+        return 0;
+    }
+    if (initPlace == 4) {
+        for (int i = 0; i < 8; ++i) {
+            if (playingBoard->nodes[initPlace].adjacent[i]->index == finalPlace) {
+                if (playingBoard->nodes[initPlace].adjacent[i]->occupiedBy != -1) {
+                    printf("Place Occupied\n");
+                    return 0;
+                }
+                playingBoard->nodes[initPlace].occupiedBy = -1;
+                playingBoard->nodes[finalPlace].occupiedBy = playingBoard->turn;
+                printf("Player %d Moved Piece from %d to %d\n", playingBoard->turn, initPlace, finalPlace);
+                if (playingBoard->turn == 0)
+                    playingBoard->turn = 1;
+                else if (playingBoard->turn == 1)
+                    playingBoard->turn = 0;
+                return 1;
+            }
+        }
+    } else {
+        for (int i = 0; i < 3; ++i) {
+            if (playingBoard->nodes[initPlace].adjacent[i]->index == finalPlace) {
+                if (playingBoard->nodes[initPlace].adjacent[i]->occupiedBy != -1) {
+                    printf("Place Occupied\n");
+                    return 0;
+                }
+                playingBoard->nodes[initPlace].occupiedBy = -1;
+                playingBoard->nodes[finalPlace].occupiedBy = playingBoard->turn;
+                printf("Player %d Moved Piece from %d to %d\n", playingBoard->turn, initPlace, finalPlace);
+                if (playingBoard->turn == 0)
+                    playingBoard->turn = 1;
+                else if (playingBoard->turn == 1)
+                    playingBoard->turn = 0;
+                return 1;
+            }
+        }
+    }
+    return 1;
 }
 
 bool isWinningBoard(board const *playingBoard) {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < 3; ++j) {
-            if (playingBoard->nodes[j].occupiedBy == i &&
-                playingBoard->nodes[j + 1].occupiedBy == i &&
-                playingBoard->nodes[j + 2].occupiedBy == i) {
+            if (playingBoard->nodes[j*3].occupiedBy == i &&
+                playingBoard->nodes[j * 3 + 1].occupiedBy == i &&
+                playingBoard->nodes[j * 3 + 2].occupiedBy == i) {
                 return true;
             }
             if (playingBoard->nodes[j].occupiedBy == i &&
