@@ -23,7 +23,7 @@ const int adjacencyMatrix[9][2] = {
 */
 board initBoard() {
     board board;
-    board.turn = -1;
+    board.turn = 0;
     board.nodes = calloc(9, sizeof(node));
     if (board.nodes == NULL)
         exit(EXIT_FAILURE);

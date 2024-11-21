@@ -5,13 +5,15 @@
 
 int main(void) {
     board playingBoard = initBoard();
-    playMove(&playingBoard, 0);
-    playMove(&playingBoard, 5);
-    playMove(&playingBoard, 4);
-    playMove(&playingBoard, 6);
-    playMove(&playingBoard, 8);
-    printf("Is Winning %d\n", isWinningBoard(&playingBoard));
-    outputBoard(&playingBoard);
+    while (!isWinningBoard(&playingBoard)) {
+        char buf[1024];
+        outputBoard(&playingBoard);
+        printf("Player %d, play your move : ",playingBoard.turn);
+        fgets(buf,1024,stdin);
+        const int pos = (int) strtol(buf,nullptr,10);
+        playMove(&playingBoard,pos);
+    }
+        printf("Congrats Player %d",!playingBoard.turn);
     return 0;
 }
 
