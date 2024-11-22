@@ -46,6 +46,7 @@ board initBoard() {
 }
 
 void outputBoard(const board *playingBoard) {
+    printf("Player 0 : X, Player 1 : Y\nBoard :\n");
     for (int i = 0; i < 9; ++i) {
         if (playingBoard->nodes[i].occupiedBy == -1)
             printf(".");
@@ -62,6 +63,10 @@ void outputBoard(const board *playingBoard) {
 }
 
 int playMove(board *const playingBoard, const int place) {
+    if (place < 0 || place > 8) {
+        printf("Out of range!\n");
+        return 0;
+    }
     if (playingBoard->nodes[place].occupiedBy != -1) {
         printf("Illegal move!!!\n");
         return 0;
@@ -80,6 +85,10 @@ int playMove(board *const playingBoard, const int place) {
 int movePiece(board *const playingBoard, const int initPlace, const int finalPlace) {
     if (initPlace == finalPlace) {
         printf("Cant keep piece in one place!\n");
+        return 0;
+    }
+    if (finalPlace < 0 || finalPlace > 8 || initPlace < 0 || initPlace > 8) {
+        printf("Out of range!\n");
         return 0;
     }
     if (playingBoard->turn != playingBoard->nodes[initPlace].occupiedBy) {
