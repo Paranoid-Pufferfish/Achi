@@ -7,15 +7,15 @@ int main(void) {
     board playingBoard = initBoard();
     int i = 0;
     while (!isWinningBoard(&playingBoard)) {
-        if (i == 0)
+        if (i < 6)
             printf("====Placement phase====\n");
-        if (i == 6)
+        else
             printf("====Moving phase====\n");
         char buf[1024];
         outputBoard(&playingBoard);
         if (i < 6) {
             //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
-            printf("N°%d : Player %d, play your move : ", i, playingBoard.turn);
+            printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
             fgets(buf, 1024,stdin);
             const int pos = strtol(buf, nullptr, 10);
             if (playMove(&playingBoard, pos))
@@ -23,10 +23,10 @@ int main(void) {
             //NOLINTEND(cppcoreguidelines-narrowing-conversions)
         } else {
             //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
-            printf("N°%d : Player %d, Select the piece you want to move : ", i, playingBoard.turn);
+            printf("N°%d : Player %d, Select the piece you want to move (0-9) : ", i, playingBoard.turn);
             fgets(buf, 1024,stdin);
             const int init = strtol(buf, nullptr, 10);
-            printf("N°%d : Player %d, Select the place you want to move it to : ", i, playingBoard.turn);
+            printf("N°%d : Player %d, Select the place you want to move it to (0-9) : ", i, playingBoard.turn);
             fgets(buf, 1024,stdin);
             const int final = strtol(buf, nullptr, 10);
             if (movePiece(&playingBoard, init, final))
