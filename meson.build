@@ -7,9 +7,11 @@ project(
 
 incdir = include_directories('include')
 src_files = files('main.c', 'src/achi_board.c')
+sdl2_dep = dependency('sdl2')
 executable(
         'Achi',
         src_files,
         install: true,
+        dependencies : sdl2_dep,
         include_directories : incdir
 )

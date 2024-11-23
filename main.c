@@ -6,17 +6,31 @@ typedef struct tree {
     int state[9];
     struct tree *next[9];
 } tree;
-
-tree *initTree(tree *previous, int place, int turn, int n, int depth) {
-    if (n > depth)
-        return nullptr;
-    if (previous->state[place] != 0)
-        return nullptr;
+tree *nextPlacement(const tree *previous, const int place, const int turn) {
     tree *P = malloc(sizeof(tree));
     for (int i = 0; i < 9; ++i) {
         P->state[i] = previous->state[i];
     }
     P->state[place] = turn;
+    return P;
+}
+
+tree *nextMove(const tree *previous, const int initPlace, const int finalPlace, const int turn) {
+    tree *P = malloc(sizeof(tree));
+    for (int i = 0; i < 9; ++i) {
+        P->state[i] = previous->state[i];
+    }
+    P->state[initPlace] = 0;
+    P->state[finalPlace] = turn;
+    return P;
+}
+
+tree *initTree(const tree *previous, const int place, const int turn, const int n, const int depth) {
+    if (n > depth)
+        return nullptr;
+    if (previous->state[place] != 0)
+        return nullptr;
+    tree *P = nextPlacement(previous, place, turn);
     int t;
     for (int i = 0; i < 9; ++i) {
         if (turn == 1)
@@ -28,7 +42,7 @@ tree *initTree(tree *previous, int place, int turn, int n, int depth) {
     return P;
 }
 
-void outputTree(tree *T) {
+void outputTree(const tree *T) {
     for (int i = 0; i < 9; ++i) {
         if (T->state[i] == 0)
             printf(".");
@@ -57,8 +71,8 @@ tree makeTree() {
 }
 
 int main(void) {
-    tree T = makeTree();
-    tree *P = &T;
+    const tree T = makeTree();
+    const tree *P = &T;
     board playingBoard = initBoard();
     int i = 1;
     while (!isWinningBoard(&playingBoard) && i < 13) {

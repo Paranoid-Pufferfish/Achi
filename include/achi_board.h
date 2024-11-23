@@ -24,4 +24,5 @@ int playMove(board *playingBoard, int place);
 int movePiece(board *const playingBoard, const int initPlace, const int finalPlace);
 
 bool isWinningBoard(const board *playingBoard);
+
 #endif //ACHI_BOARD_H
