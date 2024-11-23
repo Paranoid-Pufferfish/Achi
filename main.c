@@ -3,7 +3,6 @@
 
 #include "achi_board.h"
 
-
 int main(void) {
     board playingBoard = initBoard();
     int i = 0;
@@ -40,6 +39,8 @@ int main(void) {
         printf("Tie");
     else
         printf("After %d moves, The player %d lost !!!", i, playingBoard.turn);
+
+    free(playingBoard.nodes);
     return 0;
 }
 
