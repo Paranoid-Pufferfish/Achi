@@ -3,10 +3,11 @@
 
 #include "achi_board.h"
 
+
 int main(void) {
     board playingBoard = initBoard();
     int i = 0;
-    while (!isWinningBoard(&playingBoard)) {
+    while (!isWinningBoard(&playingBoard) && i < 13) {
         if (i < 6)
             printf("====Placement phase====\n");
         else
@@ -35,7 +36,10 @@ int main(void) {
         }
     }
     outputBoard(&playingBoard);
-    printf("After %d moves, The player %d Won !!!", i, !playingBoard.turn);
+    if (i >= 13)
+        printf("Tie");
+    else
+        printf("After %d moves, The player %d lost !!!", i, playingBoard.turn);
     return 0;
 }
 

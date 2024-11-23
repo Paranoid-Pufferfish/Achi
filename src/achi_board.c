@@ -23,13 +23,13 @@ const int adjacencyMatrix[9][2] = {
 */
 board initBoard() {
     board board;
-    board.turn = 0;
+    board.turn = 1;
     board.nodes = calloc(9, sizeof(node));
     if (board.nodes == NULL)
         exit(EXIT_FAILURE);
     for (int i = 0; i < 9; ++i) {
         board.nodes[i].index = i;
-        board.nodes[i].occupiedBy = -1;
+        board.nodes[i].occupiedBy = 0;
     }
     for (int i = 0; i < 9; ++i) {
         if (i != 4) {
@@ -46,11 +46,11 @@ board initBoard() {
 }
 
 void outputBoard(const board *playingBoard) {
-    printf("Player 0 : X, Player 1 : Y\nBoard :\n");
+    printf("Player 1 : X, Player -1 : Y\nBoard :\n");
     for (int i = 0; i < 9; ++i) {
-        if (playingBoard->nodes[i].occupiedBy == -1)
+        if (playingBoard->nodes[i].occupiedBy == 0)
             printf(".");
-        else if (playingBoard->nodes[i].occupiedBy == 0)
+        else if (playingBoard->nodes[i].occupiedBy == 1)
             printf("X");
         else
             printf("O");
@@ -67,19 +67,19 @@ int playMove(board *const playingBoard, const int place) {
         printf("Out of range!\n");
         return 0;
     }
-    if (playingBoard->nodes[place].occupiedBy != -1) {
+    if (playingBoard->nodes[place].occupiedBy != 0) {
         printf("Illegal move!!!\n");
         return 0;
     }
-    if (playingBoard->turn == 1) {
+    if (playingBoard->turn == -1) {
         printf("Placing Y in %d\n", place);
-        playingBoard->nodes[place].occupiedBy = 1;
-        playingBoard->turn = 0;
+        playingBoard->nodes[place].occupiedBy = -1;
+        playingBoard->turn = 1;
         return 1;
     }
     printf("Placing X in %d\n", place);
-    playingBoard->nodes[place].occupiedBy = 0;
-    playingBoard->turn = 1;
+    playingBoard->nodes[place].occupiedBy = 1;
+    playingBoard->turn = -1;
     return 1;
 }
 int movePiece(board *const playingBoard, const int initPlace, const int finalPlace) {
@@ -95,41 +95,41 @@ int movePiece(board *const playingBoard, const int initPlace, const int finalPla
         printf("Not your piece !\n");
         return 0;
     }
-    if (playingBoard->nodes[finalPlace].occupiedBy != -1) {
+    if (playingBoard->nodes[finalPlace].occupiedBy != 0) {
         printf("Place occupied!\n");
         return 0;
     }
     if (initPlace == 4) {
         for (int i = 0; i < 8; ++i) {
             if (playingBoard->nodes[initPlace].adjacent[i]->index == finalPlace) {
-                if (playingBoard->nodes[initPlace].adjacent[i]->occupiedBy != -1) {
+                if (playingBoard->nodes[initPlace].adjacent[i]->occupiedBy != 0) {
                     printf("Place Occupied\n");
                     return 0;
                 }
-                playingBoard->nodes[initPlace].occupiedBy = -1;
+                playingBoard->nodes[initPlace].occupiedBy = 0;
                 playingBoard->nodes[finalPlace].occupiedBy = playingBoard->turn;
                 printf("Player %d Moved Piece from %d to %d\n", playingBoard->turn, initPlace, finalPlace);
-                if (playingBoard->turn == 0)
+                if (playingBoard->turn == 1)
+                    playingBoard->turn = -1;
+                else if (playingBoard->turn == -1)
                     playingBoard->turn = 1;
-                else if (playingBoard->turn == 1)
-                    playingBoard->turn = 0;
                 return 1;
             }
         }
     } else {
         for (int i = 0; i < 3; ++i) {
             if (playingBoard->nodes[initPlace].adjacent[i]->index == finalPlace) {
-                if (playingBoard->nodes[initPlace].adjacent[i]->occupiedBy != -1) {
+                if (playingBoard->nodes[initPlace].adjacent[i]->occupiedBy != 0) {
                     printf("Place Occupied\n");
                     return 0;
                 }
-                playingBoard->nodes[initPlace].occupiedBy = -1;
+                playingBoard->nodes[initPlace].occupiedBy = 0;
                 playingBoard->nodes[finalPlace].occupiedBy = playingBoard->turn;
                 printf("Player %d Moved Piece from %d to %d\n", playingBoard->turn, initPlace, finalPlace);
-                if (playingBoard->turn == 0)
+                if (playingBoard->turn == 1)
+                    playingBoard->turn = -1;
+                else if (playingBoard->turn == -1)
                     playingBoard->turn = 1;
-                else if (playingBoard->turn == 1)
-                    playingBoard->turn = 0;
                 return 1;
             }
         }
@@ -138,29 +138,31 @@ int movePiece(board *const playingBoard, const int initPlace, const int finalPla
 }
 
 bool isWinningBoard(board const *playingBoard) {
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < 3; ++j) {
-            if (playingBoard->nodes[j*3].occupiedBy == i &&
-                playingBoard->nodes[j * 3 + 1].occupiedBy == i &&
-                playingBoard->nodes[j * 3 + 2].occupiedBy == i) {
+    for (int i = -1; i < 2; ++i) {
+        if (i != 0) {
+            for (int j = 0; j < 3; ++j) {
+                if (playingBoard->nodes[j * 3].occupiedBy == i &&
+                    playingBoard->nodes[j * 3 + 1].occupiedBy == i &&
+                    playingBoard->nodes[j * 3 + 2].occupiedBy == i) {
+                    return true;
+                }
+                if (playingBoard->nodes[j].occupiedBy == i &&
+                    playingBoard->nodes[j + 3].occupiedBy == i &&
+                    playingBoard->nodes[j + 6].occupiedBy == i) {
+                    return true;
+                }
+            }
+            if (playingBoard->nodes[0].occupiedBy == i &&
+                playingBoard->nodes[4].occupiedBy == i &&
+                playingBoard->nodes[8].occupiedBy == i) {
+            return true;
+            }
+            if (playingBoard->nodes[2].occupiedBy == i &&
+                playingBoard->nodes[4].occupiedBy == i &&
+                playingBoard->nodes[6].occupiedBy == i) {
                 return true;
             }
-            if (playingBoard->nodes[j].occupiedBy == i &&
-                playingBoard->nodes[j + 3].occupiedBy == i &&
-                playingBoard->nodes[j + 6].occupiedBy == i) {
-                return true;
-            }
-        }
-        if (playingBoard->nodes[0].occupiedBy == i &&
-            playingBoard->nodes[4].occupiedBy == i &&
-            playingBoard->nodes[8].occupiedBy == i) {
-            return true;
-        }
-        if (playingBoard->nodes[2].occupiedBy == i &&
-            playingBoard->nodes[4].occupiedBy == i &&
-            playingBoard->nodes[6].occupiedBy == i) {
-            return true;
-        }
+    }
     }
     return false;
 }
