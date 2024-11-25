@@ -15,28 +15,28 @@ bool isTerminal(const tree *tree) {
                     tree->state[j * 3 + 1] == i &&
                     tree->state[j * 3 + 2] == i) {
                     return true;
-                    }
+                }
                 if (tree->state[j] == i &&
                     tree->state[j + 3] == i &&
                     tree->state[j + 6] == i) {
                     return true;
-                    }
+                }
             }
             if (tree->state[0] == i &&
                 tree->state[4] == i &&
                 tree->state[8] == i) {
                 return true;
-                }
+            }
             if (tree->state[2] == i &&
                 tree->state[4] == i &&
                 tree->state[6] == i) {
                 return true;
-                }
+            }
         }
     }
     return false;
-
 }
+
 tree *nextPlacement(const tree *previous, const int place, const int turn) {
     if (previous->state[place] != 0 || isTerminal(previous))
         return nullptr;
@@ -91,7 +91,7 @@ tree *initTree(const tree *previous, const int place, const int turn, const int 
         else
             t = 1;
         if (n < 6)
-             P->next[i] = initTree(P, i, t, n + 1, depth);
+            P->next[i] = initTree(P, i, t, n + 1, depth);
     }
     return P;
 }
@@ -138,6 +138,7 @@ void freeAll(tree *P) {
         // }
     }
 }
+
 int main(void) {
     tree *T = makeTree();
     tree *P = T;

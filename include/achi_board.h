@@ -16,6 +16,7 @@ typedef struct board {
     node *nodes;
 } board;
 extern const int adjacencyMatrix[9][2];
+
 board initBoard();
 void outputBoard(const board *playingBoard);
 
