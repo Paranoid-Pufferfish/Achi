@@ -246,24 +246,45 @@ int main(void) {
     tree *T = makeTree();
     tree *P = T;
     board playingBoard = initBoard();
+    char buf[1024];
     int i = 1;
     int num[3];
     int count = 0;
     int pos;
     int startFirst = 0;
+    bool ai = true;
+    printf("Would you want to play VS an AI ? [1 for yes, 0 for no]: ");
+    fgets(buf, 1024,stdin);
+    ai = strtol(buf, nullptr, 10);
+    if (ai)
+        printf("Player VS AI\n");
+    else
+        printf("Player VS Player\n");
+    printf("Would you want to start first ? [1 for yes, 0 for no]: ");
+    fgets(buf, 1024,stdin);
+    startFirst = !strtol(buf, nullptr, 10);
+    if (startFirst)
+        printf("AI plays first\n");
+    else
+        printf("You play first\n");
     while (!isWinningBoard(&playingBoard) && i < 13) {
         if (i <= 6)
             printf("====Placement phase====\n");
         else
             printf("====Moving phase====\n");
-        char buf[1024];
-        outputTree(P);
-        // outputBoard(&playingBoard);
         if (i <= 6) {
+            outputTree(P);
+            // outputBoard(&playingBoard);
             //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
-            if (i % 2 == startFirst)
-                pos = minimax(P, startFirst).best_move;
-            else {
+            if (ai) {
+                if (i % 2 == startFirst)
+                    pos = minimax(P, startFirst).best_move;
+                else {
+                    printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
+                    fgets(buf, 1024,stdin);
+                    pos = strtol(buf, nullptr, 10);
+                }
+            } else {
                 printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
                 fgets(buf, 1024,stdin);
                 pos = strtol(buf, nullptr, 10);
@@ -272,8 +293,11 @@ int main(void) {
                 P = P->next[pos];
                 i++;
             }
+            if (i == 6)
+                freeAll(P);
             //NOLINTEND(cppcoreguidelines-narrowing-conversions)
         } else {
+            outputBoard(&playingBoard);
             //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
             printf("N°%d : Player %d, Select the piece you want to move (0-9) : ", i, playingBoard.turn);
             fgets(buf, 1024,stdin);
@@ -295,7 +319,6 @@ int main(void) {
         printf("After %d moves, The player %d lost !!!", i, playingBoard.turn);
 
     free(playingBoard.nodes);
-    freeAll(P);
     return 0;
 }
 
