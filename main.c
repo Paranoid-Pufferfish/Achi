@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "achi_board.h"
-
 typedef struct tree {
     int state[9];
     struct tree *next[9];
@@ -97,9 +96,9 @@ void outputTree(const tree *T) {
         if (T->state[i] == 0)
             printf(".");
         else if (T->state[i] == 1)
-            printf("X");
+            printf(PLAYER1CHAR);
         else
-            printf("O");
+            printf(PLAYER2CHAR);
 
         if (i == 2 || i == 5 || i == 8)
             printf("\n");
@@ -173,13 +172,13 @@ bool outputPossibleMove(board *B, int place, int *num, int count) {
         } else if (B->nodes[i].occupiedBy == 1) {
             if (place == i)
                 printf("\033[0;36m");
-            printf("X");
+            printf(PLAYER1CHAR);
             if (place == i)
                 printf("\033[0m");
         } else {
             if (place == i)
                 printf("\033[0;36m");
-            printf("O");
+            printf(PLAYER2CHAR);
             if (place == i)
                 printf("\033[0m");
         }
@@ -248,14 +247,11 @@ int main(void) {
     board playingBoard = initBoard();
     char buf[1024];
     int i = 1;
-    int num[3];
-    int count = 0;
     int pos;
     int startFirst = 0;
-    bool ai = true;
     printf("Would you want to play VS an AI ? [1 for yes, 0 for no]: ");
     fgets(buf, 1024,stdin);
-    ai = strtol(buf, nullptr, 10);
+    bool ai = strtol(buf, nullptr, 10);
     if (ai)
         printf("Player VS AI\n");
     else
@@ -297,6 +293,8 @@ int main(void) {
                 freeAll(P);
             //NOLINTEND(cppcoreguidelines-narrowing-conversions)
         } else {
+            int num[3];
+            int count = 0;
             outputBoard(&playingBoard);
             //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
             printf("N°%d : Player %d, Select the piece you want to move (0-9) : ", i, playingBoard.turn);

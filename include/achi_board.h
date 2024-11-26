@@ -5,6 +5,9 @@
 #ifndef ACHI_BOARD_H
 #define ACHI_BOARD_H
 
+#define PLAYER1CHAR "X"
+#define PLAYER2CHAR "Y"
+
 typedef struct node {
     int occupiedBy;
     int index;

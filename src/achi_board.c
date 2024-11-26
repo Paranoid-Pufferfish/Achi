@@ -51,9 +51,9 @@ void outputBoard(const board *playingBoard) {
         if (playingBoard->nodes[i].occupiedBy == 0)
             printf(".");
         else if (playingBoard->nodes[i].occupiedBy == 1)
-            printf("X");
+            printf(PLAYER1CHAR);
         else
-            printf("O");
+            printf(PLAYER2CHAR);
 
         if (i == 2 || i == 5 || i == 8)
             printf("\n");
@@ -72,12 +72,12 @@ int playMove(board *const playingBoard, const int place) {
         return 0;
     }
     if (playingBoard->turn == -1) {
-        printf("Placing Y in %d\n", place);
+        printf("Placing %s in %d\n",PLAYER2CHAR, place);
         playingBoard->nodes[place].occupiedBy = -1;
         playingBoard->turn = 1;
         return 1;
     }
-    printf("Placing X in %d\n", place);
+    printf("Placing %s in %d\n",PLAYER1CHAR, place);
     playingBoard->nodes[place].occupiedBy = 1;
     playingBoard->turn = -1;
     return 1;
