@@ -82,6 +82,7 @@ int playMove(board *const playingBoard, const int place) {
     playingBoard->turn = -1;
     return 1;
 }
+
 int movePiece(board *const playingBoard, const int initPlace, const int finalPlace) {
     if (finalPlace < 0 || finalPlace > 8) {
         printf("Out of range!\n");
@@ -147,15 +148,14 @@ bool isWinningBoard(board const *playingBoard) {
             if (playingBoard->nodes[0].occupiedBy == i &&
                 playingBoard->nodes[4].occupiedBy == i &&
                 playingBoard->nodes[8].occupiedBy == i) {
-            return true;
+                return true;
             }
             if (playingBoard->nodes[2].occupiedBy == i &&
                 playingBoard->nodes[4].occupiedBy == i &&
                 playingBoard->nodes[6].occupiedBy == i) {
                 return true;
             }
-    }
+        }
     }
     return false;
 }
-

@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "achi_board.h"
+
 typedef struct tree {
     int state[9];
     struct tree *next[9];
 } tree;
+
 typedef struct pair {
     int eval;
     int best_move;
@@ -47,6 +49,7 @@ bool isFinal(tree *tree) {
     }
     return true;
 }
+
 tree *nextPlacement(const tree *previous, const int place, const int turn) {
     if (previous->state[place] != 0 || isTerminal(previous) != 0)
         return nullptr;
@@ -118,6 +121,7 @@ tree *makeTree() {
     }
     return Tree;
 }
+
 void freeAll(tree *P) {
     if (P != nullptr) {
         for (int i = 0; i < 9; ++i) {
@@ -319,4 +323,3 @@ int main(void) {
     free(playingBoard.nodes);
     return 0;
 }
-
