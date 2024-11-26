@@ -83,16 +83,8 @@ int playMove(board *const playingBoard, const int place) {
     return 1;
 }
 int movePiece(board *const playingBoard, const int initPlace, const int finalPlace) {
-    if (initPlace == finalPlace) {
-        printf("Cant keep piece in one place!\n");
-        return 0;
-    }
-    if (finalPlace < 0 || finalPlace > 8 || initPlace < 0 || initPlace > 8) {
+    if (finalPlace < 0 || finalPlace > 8) {
         printf("Out of range!\n");
-        return 0;
-    }
-    if (playingBoard->turn != playingBoard->nodes[initPlace].occupiedBy) {
-        printf("Not your piece !\n");
         return 0;
     }
     if (playingBoard->nodes[finalPlace].occupiedBy != 0) {
