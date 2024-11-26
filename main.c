@@ -42,7 +42,7 @@ int isTerminal(const tree *tree) {
     return 0;
 }
 
-bool isFinal(tree *tree) {
+bool isFinal(const tree *tree) {
     for (int i = 0; i < 9; ++i) {
         if (tree->next[i] != nullptr)
             return false;
@@ -77,7 +77,7 @@ tree *nextPlacement(const tree *previous, const int place, const int turn) {
 //     P->state[finalPlace] = turn;
 //     return P;
 // }
-
+//NOLINTBEGIN(misc-no-recursion)
 tree *initTree(const tree *previous, const int place, const int turn, const int n, const int depth) {
     tree *P = nextPlacement(previous, place, turn);
     if (n > depth || P == nullptr)
@@ -93,7 +93,7 @@ tree *initTree(const tree *previous, const int place, const int turn, const int 
     }
     return P;
 }
-
+//NOLINTEND(misc-no-recursion)
 void outputTree(const tree *T) {
     for (int i = 0; i < 9; ++i) {
         if (T->state[i] == 0)
@@ -121,7 +121,7 @@ tree *makeTree() {
     }
     return Tree;
 }
-
+//NOLINTBEGIN(misc-no-recursion)
 void freeAll(tree *P) {
     if (P != nullptr) {
         for (int i = 0; i < 9; ++i) {
@@ -136,8 +136,8 @@ void freeAll(tree *P) {
         // }
     }
 }
-
-bool outputPossibleMove(board *B, int place, int *num, int count) {
+//NOLINTEND(misc-no-recursion)
+bool outputPossibleMove(const board *B, const int place, int *num, int count) {
     if (B->nodes[place].occupiedBy != B->turn) {
         printf("Not your piece!!!\n");
         return false;
@@ -194,8 +194,8 @@ bool outputPossibleMove(board *B, int place, int *num, int count) {
     }
     return true;
 }
-
-pair minimax(tree *board, bool maximizing) {
+//NOLINTBEGIN(misc-no-recursion)
+pair minimax(const tree *board, const bool maximizing) {
     pair pair;
     if (isTerminal(board) == 1) {
         pair.eval = 1;
@@ -244,7 +244,7 @@ pair minimax(tree *board, bool maximizing) {
         return pair;
     }
 }
-
+//NOLINTEND(misc-no-recursion)
 int main(void) {
     tree *T = makeTree();
     tree *P = T;
