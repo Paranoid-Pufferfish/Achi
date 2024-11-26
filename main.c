@@ -86,7 +86,7 @@ tree *initTree(const tree *previous, const int place, const int turn, const int 
             t = -1;
         else
             t = 1;
-        if (n < 6)
+        if (n < depth)
             P->next[i] = initTree(P, i, t, n + 1, depth);
     }
     return P;
