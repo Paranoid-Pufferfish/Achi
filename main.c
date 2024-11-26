@@ -169,16 +169,25 @@ bool outputPossibleMove(board *B, int place, int *num, int count) {
             int t = true;
             for (int j = 0; j < count; ++j) {
                 if (B->nodes[place].adjacent[num[j]]->index == i) {
-                    printf("%d", j);
+                    printf("\033[0;35m%d\033[0m", j);
                     t = false;
                 }
             }
             if (t)
                 printf(".");
-        } else if (B->nodes[i].occupiedBy == 1)
+        } else if (B->nodes[i].occupiedBy == 1) {
+            if (place == i)
+                printf("\033[0;36m");
             printf("X");
-        else
+            if (place == i)
+                printf("\033[0m");
+        } else {
+            if (place == i)
+                printf("\033[0;36m");
             printf("O");
+            if (place == i)
+                printf("\033[0m");
+        }
 
         if (i == 2 || i == 5 || i == 8)
             printf("\n");
