@@ -293,7 +293,7 @@ int main(void) {
                 P = P->next[pos];
                 i++;
             }
-            if (i == 6)
+            if (i == 7)
                 freeAll(P);
             //NOLINTEND(cppcoreguidelines-narrowing-conversions)
         } else {
