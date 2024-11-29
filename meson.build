@@ -6,7 +6,7 @@ project(
 )
 
 incdir = include_directories('include')
-src_files = files('main.c')
+src_files = files('main.c', 'src/decision_tree.c', 'src/game_interface.c', 'src/game_board.c')
 sdl2_dep = dependency('sdl2')
 executable(
         'Achi',
