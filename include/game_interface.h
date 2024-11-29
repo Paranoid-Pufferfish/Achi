@@ -2,7 +2,7 @@
 // Created by crystal on 29/11/24.
 //
 
-#ifndef GAME_FUNCS_H
-#define GAME_FUNCS_H
+#ifndef GAME_INTERFACE_H
+#define GAME_INTERFACE_H
 
-#endif //GAME_FUNCS_H
+#endif //GAME_INTERFACE_H
