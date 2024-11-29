@@ -128,15 +128,19 @@ void freeAll(tree *P) {
             freeAll(P->next[i]);
         }
         free(P);
-        // if (isTerminal(P)) {
-        //     printf("\n=============\n");
-        //     printf("Winner : %d Terminal Board detected :\n", isTerminal(P));
-        //     outputTree(P);
-        //     printf("\n=============\n");
-        // }
     }
 }
 //NOLINTEND(misc-no-recursion)
+void getPlayerPieces(const board *B, int turn, int *count, int *pieces) {
+    *count = 0;
+    for (int i = 0; i < 9; ++i) {
+        if (B->nodes[i].occupiedBy == turn) {
+            pieces[*count] = i;
+            (*count)++;
+        }
+    }
+}
+
 bool outputPossibleMove(const board *B, const int place, int *num, int count) {
     if (B->nodes[place].occupiedBy != B->turn) {
         printf("Not your piece!!!\n");
@@ -249,19 +253,19 @@ int main(void) {
     tree *T = makeTree();
     tree *P = T;
     board playingBoard = initBoard();
-    char buf[1024];
+    char buf[5];
     int i = 1;
     int pos;
     int startFirst = 0;
     printf("Would you want to play VS an AI ? [1 for yes, 0 for no]: ");
-    fgets(buf, 1024,stdin);
+    fgets(buf, 5,stdin);
     bool ai = strtol(buf, nullptr, 10);
     if (ai)
         printf("Player VS AI\n");
     else
         printf("Player VS Player\n");
     printf("Would you want to start first ? [1 for yes, 0 for no]: ");
-    fgets(buf, 1024,stdin);
+    fgets(buf, 5,stdin);
     startFirst = !strtol(buf, nullptr, 10);
     if (startFirst)
         printf("AI plays first\n");
@@ -281,12 +285,12 @@ int main(void) {
                     pos = minimax(P, startFirst).best_move;
                 else {
                     printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
-                    fgets(buf, 1024,stdin);
+                    fgets(buf, 5,stdin);
                     pos = strtol(buf, nullptr, 10);
                 }
             } else {
                 printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
-                fgets(buf, 1024,stdin);
+                fgets(buf, 5,stdin);
                 pos = strtol(buf, nullptr, 10);
             }
             if (playMove(&playingBoard, pos)) {
@@ -297,18 +301,22 @@ int main(void) {
                 freeAll(P);
             //NOLINTEND(cppcoreguidelines-narrowing-conversions)
         } else {
-            int num[3];
-            int count = 0;
+            int finals[3];
+            int count1 = 0;
+            int places[3];
+            int count2 = 0;
             outputBoard(&playingBoard);
             //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
-            printf("N°%d : Player %d, Select the piece you want to move (0-9) : ", i, playingBoard.turn);
-            fgets(buf, 1024,stdin);
+            printf("N°%d : Player %d, Select the piece you want to move : ", i, playingBoard.turn);
+            getPlayerPieces(&playingBoard, playingBoard.turn, &count2, places);
+            fgets(buf, 5,stdin);
             const int init = strtol(buf, nullptr, 10);
-            if (outputPossibleMove(&playingBoard, init, num, count)) {
+            if (outputPossibleMove(&playingBoard, places[init], finals, count1)) {
                 printf("N°%d : Player %d, Select the place you want to move it to : ", i, playingBoard.turn);
-                fgets(buf, 1024,stdin);
+                fgets(buf, 5,stdin);
                 const int final = strtol(buf, nullptr, 10);
-                if (movePiece(&playingBoard, init, playingBoard.nodes[init].adjacent[num[final]]->index))
+                if (movePiece(&playingBoard, places[init],
+                              playingBoard.nodes[places[init]].adjacent[finals[final]]->index))
                     i++;
             }
             //NOLINTEND(cppcoreguidelines-narrowing-conversions)
