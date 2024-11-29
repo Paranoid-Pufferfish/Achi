@@ -18,7 +18,35 @@ const int adjacencyMatrix[9][2] = {
     {6, 8},
     {7, 5}
 };
-
+int is_winning(board game_board) {
+    for (int i = -1; i < 2; ++i) {
+        if (i != 0) {
+            for (int j = 0; j < 3; ++j) {
+                if (game_board[j * 3].occupied_by == i &&
+                    game_board[j * 3 + 1].occupied_by == i &&
+                    game_board[j * 3 + 2].occupied_by == i) {
+                    return i;
+                    }
+                if (game_board[j].occupied_by == i &&
+                    game_board[j + 3].occupied_by == i &&
+                    game_board[j + 6].occupied_by == i) {
+                    return i;
+                    }
+            }
+            if (game_board[0].occupied_by == i &&
+                game_board[4].occupied_by == i &&
+                game_board[8].occupied_by == i) {
+                return i;
+                }
+            if (game_board[2].occupied_by == i &&
+                game_board[4].occupied_by == i &&
+                game_board[6].occupied_by == i) {
+                return i;
+                }
+        }
+    }
+    return 0;
+}
 board create_board() {
     board game_board = calloc(9, sizeof(square));
     if (game_board == nullptr)
@@ -54,28 +82,25 @@ void output_board(board game_board) {
     }
 }
 
-int *get_played(board game_board, int *number, int player) {
+void get_played(board game_board, int *number, int player, int *empty_squares) {
     *number = 0;
     for (int i = 0; i < 9; ++i) {
         if (game_board[i].occupied_by == player)
             (*number)++;
     }
-    if (*number == 0)
-        return nullptr;
-    int *empty_squares = calloc(*number, sizeof(int));
-    int index = 0;
-    for (int i = 0; i < 9; ++i) {
-        if (game_board[i].occupied_by == player) {
-            empty_squares[index] = i;
-            index++;
+    if (*number != 0) {
+        int index = 0;
+        for (int i = 0; i < 9; ++i) {
+            if (game_board[i].occupied_by == player) {
+                empty_squares[index] = i;
+                index++;
+            }
         }
     }
-    return empty_squares;
 }
 
-int *get_adjacent(board game_board, int *number, int place) {
+void get_adjacent(board game_board, int *number, int place, int *adjacents) {
     *number = 0;
-    int *adjacents = calloc(3, sizeof(int));
     for (int i = 0; i < ((place == 4) ? 8 : 3); ++i) {
         if (game_board[place].adjacent[i]->occupied_by == 0) {
             adjacents[*number] = i;
@@ -83,7 +108,6 @@ int *get_adjacent(board game_board, int *number, int place) {
         }
     }
 
-    return adjacents;
 }
 
 board copy_board(board game_board) {
@@ -98,7 +122,8 @@ board next_board(board game_board, int placement, int round) {
     if (game_board == nullptr)
         return nullptr;
     int number_empty;
-    int *empty_squares = get_played(game_board, &number_empty, 0);
+    int empty_squares[9];
+    get_played(game_board, &number_empty, 0,empty_squares);
     bool empty = false;
     if (round <= 6) {
         for (int i = 0; i < 9; ++i) {
@@ -107,7 +132,6 @@ board next_board(board game_board, int placement, int round) {
                 break;
             }
         }
-        free(empty_squares);
         if (!empty)
             return nullptr;
         int t = (round % 2 == 0) ? -1 : 1;
@@ -116,12 +140,78 @@ board next_board(board game_board, int placement, int round) {
         return new_game_board;
     } else {
         int t = (round % 2 == 0) ? -1 : 1;
+        if (placement / 3 >= 3) {
+            printf("Not cool bro :(\n");
+            return nullptr;
+        }
         int number_played;
-        int *player_squares = get_played(game_board, &number_played, t);
+        int player_squares[3] = {-1,-1,-1};
+        get_played(game_board, &number_played, t,player_squares);
         board new_game_board = copy_board(game_board);
-        int *possible_adjacents = get_adjacent(new_game_board, &number_played, player_squares[placement / 3]);
+        int possible_adjacents[3]= {-1,-1,-1};
+        if (player_squares[placement / 3] == -1)
+            return nullptr;
+        get_adjacent(new_game_board, &number_played, player_squares[placement / 3], possible_adjacents);
+        if (number_played == 0) {
+            return nullptr;
+        }
+        if (possible_adjacents[placement % 3] == -1)
+            return nullptr;
         new_game_board[player_squares[placement / 3]].occupied_by = 0;
         new_game_board[player_squares[placement / 3]].adjacent[possible_adjacents[placement % 3]]->occupied_by = t;
         return new_game_board;
+    }
+}
+pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
+    pair pair;
+    if (is_winning(game_board) == 1) {
+        pair.eval = 1;
+        pair.best_move = -1;
+        return pair;
+    }
+    if (is_winning(game_board) == -1) {
+        pair.eval = -1;
+        pair.best_move = -1;
+        return pair;
+    }
+    if (n > max_depth) {
+        pair.eval = 0;
+        pair.best_move = -1;
+        return pair;
+    }
+    if (maximizing) {
+        int max_eval = -100;
+        int best_move = -1;
+        for (int i = 0; i < 9; ++i) {
+            board next_playing_board = next_board(game_board,i,n);
+            if (next_playing_board != nullptr) {
+                int eval = minimax(next_playing_board, false, n+1,max_depth).eval;
+                if (eval > max_eval) {
+                    max_eval = eval;
+                    best_move = i;
+                }
+                free(next_playing_board);
+            }
+        }
+        pair.eval = max_eval;
+        pair.best_move = best_move;
+        return pair;
+    } else {
+        int min_eval = 100;
+        int best_move = -1;
+        for (int i = 0; i < 9; ++i) {
+            board next_playing_board = next_board(game_board,i,n);
+            if (next_playing_board != nullptr) {
+                int eval = minimax(next_playing_board, true,n+1,max_depth).eval;
+                if (eval < min_eval) {
+                    min_eval = eval;
+                    best_move = i;
+                }
+                free(next_playing_board);
+            }
+        }
+        pair.eval = min_eval;
+        pair.best_move = best_move;
+        return pair;
     }
 }

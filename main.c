@@ -2,24 +2,29 @@
 #include <stdlib.h>
 #include "game_board.h"
 
-int main(void) {
+int main (int argc, char *argv[]){
+    char buf[6];
+    int round=1;
     board test_board = create_board();
-    output_board(test_board);
-    test_board = next_board(test_board, 0, 1);
-    output_board(test_board);
-    test_board = next_board(test_board, 1, 2);
-    output_board(test_board);
-    test_board = next_board(test_board, 2, 3);
-    output_board(test_board);
-    test_board = next_board(test_board, 3, 4);
-    output_board(test_board);
-    test_board = next_board(test_board, 4, 5);
-    output_board(test_board);
-    test_board = next_board(test_board, 5, 6);
-    output_board(test_board);
-    test_board = next_board(test_board, 6, 7);
-    output_board(test_board);
-    test_board = next_board(test_board, 0, 8);
-    output_board(test_board);
+    board P = test_board;
+    while (!is_winning(test_board)) {
+        P = test_board;
+        output_board(test_board);
+        printf("N°%d : Player %d, play your move (0-9) : ", round, (round % 2 == 0) ? -1 : 1);
+        pair hint = minimax(test_board,(round % 2 == 0) ? false : true,round,6);
+        printf("{%d,%d}\n",hint.best_move,hint.eval);
+        fgets(buf, 5,stdin);
+        int place = strtol(buf, nullptr, 10);
+        test_board = next_board(test_board, place, round);
+        if (test_board == nullptr) {
+            printf("Wtf bro, not cool :(\n");
+            test_board = P;
+        }
+        else {
+            free(P);
+            round++;
+        }
+
+    }
     return 0;
 }
