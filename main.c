@@ -15,8 +15,7 @@ int main(void) {
             printf("N°%d : Player 1, play your move (0-9) : ", round);
             fgets(buf, 5,stdin);
             place = strtol(buf, nullptr, 10);
-        }
-        else {
+        } else {
             pair hint = minimax(test_board, false, round, 10);
             place = hint.best_move;
         }

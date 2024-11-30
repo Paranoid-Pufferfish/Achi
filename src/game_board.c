@@ -206,17 +206,17 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
     } else {
         int min_eval = 100;
         int best_move = -1;
-            for (int i = 0; i < 9; ++i) {
-                board next_playing_board = next_board(game_board, i, n);
-                if (next_playing_board != nullptr) {
-                    int eval = minimax(next_playing_board, true, n + 1, max_depth).eval;
-                    if (eval < min_eval) {
-                        min_eval = eval;
-                        best_move = i;
-                    }
-                    free(next_playing_board);
+        for (int i = 0; i < 9; ++i) {
+            board next_playing_board = next_board(game_board, i, n);
+            if (next_playing_board != nullptr) {
+                int eval = minimax(next_playing_board, true, n + 1, max_depth).eval;
+                if (eval < min_eval) {
+                    min_eval = eval;
+                    best_move = i;
                 }
+                free(next_playing_board);
             }
+        }
         pair.eval = min_eval;
         pair.best_move = best_move;
         return pair;
