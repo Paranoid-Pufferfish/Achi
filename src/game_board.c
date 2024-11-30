@@ -84,6 +84,7 @@ void output_board(board game_board) {
             printf(" ");
     }
 }
+
 void output_possible(board game_board, int player) {
     int number = 1;
     printf("Player 1 : X, Player -1 : Y\nBoard :\n");

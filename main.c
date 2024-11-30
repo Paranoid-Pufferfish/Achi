@@ -45,7 +45,7 @@ int main(void) {
         } else {
             pair hint = minimax(test_board, false, round, max_round);
             place = hint.best_move;
-            printf("N°%d : The IA played %d with an eval of %d\n",round,place+1,hint.eval);
+            printf("N°%d : The IA played %d with an eval of %d\n", round, place + 1, hint.eval);
         }
         test_board = next_board(test_board, place, round);
         if (test_board == nullptr) {
