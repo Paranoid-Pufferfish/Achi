@@ -17,10 +17,14 @@ typedef struct pair {
 typedef square *board;
 board create_board();
 int is_winning(board game_board);
+
 void output_board(board game_board);
+
 void get_played(board game_board, int *number, int player, int *empty_squares);
+
 void get_adjacent(board game_board, int *number, int place, int *adjacents);
 board next_board(board game_board, int placement, int round);
+
 pair minimax(board game_board, const bool maximizing, int n, int max_depth);
 
 #endif //GAME_BOARD_H
