@@ -7,7 +7,6 @@
 
 typedef struct square {
     int occupied_by;
-    int index;
     struct square *adjacent[8];
 } square;
 

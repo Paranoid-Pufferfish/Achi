@@ -3,9 +3,8 @@
 #include "game_board.h"
 
 int main(void) {
-    char buf[6];
     int round = 1;
-    int max_round = 11;
+    int max_round = 15;
     board test_board = create_board();
     board P = test_board;
     while (!is_winning(test_board) && max_round > round) {
@@ -13,11 +12,12 @@ int main(void) {
         output_board(test_board);
         int place;
         if (round % 2 != 0) {
+            char buf[6];
             if (round < 6) {
                 printf("N°%d : Player 1, play your move (1-9) : ", round);
                 if (fgets(buf, 5,stdin) == NULL)
-                    exit(EXIT_FAILURE);
-                place = strtol(buf, nullptr, 10) - 1;
+                    return 1;
+                place = (int) strtol(buf, nullptr, 10) - 1;
             } else {
                 output_possible(test_board, 1);
                 int number_played = 0;
@@ -29,8 +29,8 @@ int main(void) {
                     printf("N°%d : Player 1, Select the piece you want to move : ",
                            round);
                     if (fgets(buf, 5,stdin) == NULL)
-                        exit(EXIT_FAILURE);
-                    place = (strtol(buf, nullptr, 10) - 1) * 3;
+                        return 1;
+                    place = (int) (strtol(buf, nullptr, 10) - 1) * 3;
                     get_adjacent(test_board, &number_played2, player_squares[place / 3], possible_squares);
                     if (number_played2 <= 0)
                         printf("No adjacent squares found\n");
@@ -39,8 +39,8 @@ int main(void) {
                 printf("N°%d : Player 1, Select the neighbour you want to move it to : (TODO: Visual indicator) ",
                        round);
                 if (fgets(buf, 5,stdin) == NULL)
-                    exit(EXIT_FAILURE);
-                place = place + (strtol(buf, nullptr, 10) - 1);
+                    return 1;
+                place = place + (int) (strtol(buf, nullptr, 10) - 1);
             }
         } else {
             pair hint = minimax(test_board, false, round, max_round);
