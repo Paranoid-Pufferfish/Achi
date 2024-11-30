@@ -83,6 +83,35 @@ void output_board(board game_board) {
             printf(" ");
     }
 }
+void output_possible(board game_board, int player) {
+int number = 1;
+    printf("Player 1 : X, Player -1 : Y\nBoard :\n");
+    for (int i = 0; i < 9; ++i) {
+        if (game_board[i].occupied_by == 0)
+            printf(".");
+        else if (game_board[i].occupied_by == 1) {
+            if (player != 1)
+                printf("X");
+            else {
+                printf("%d",number);
+                number++;
+            }
+        }
+        else {
+            if (player != -1)
+                printf("O");
+            else {
+                printf("%d",number);
+                number++;
+            }
+        }
+
+        if (i == 2 || i == 5 || i == 8)
+            printf("\n");
+        else
+            printf(" ");
+    }
+}
 
 void get_played(board game_board, int *number, int player, int *empty_squares) {
     *number = 0;

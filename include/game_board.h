@@ -26,5 +26,5 @@ void get_adjacent(board game_board, int *number, int place, int *adjacents);
 board next_board(board game_board, int placement, int round);
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth);
-
+void output_possible(board game_board, int player);
 #endif //GAME_BOARD_H
