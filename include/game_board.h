@@ -6,6 +6,7 @@
 #define GAME_BOARD_H
 typedef struct square {
     int occupied_by;
+    int index;
     struct square *adjacent[8];
 } square;
 
@@ -27,4 +28,5 @@ board next_board(board game_board, int placement, int round);
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth);
 void output_possible(board game_board, int player);
+void output_adjacent(board game_board, int place, const int *squares);
 #endif //GAME_BOARD_H

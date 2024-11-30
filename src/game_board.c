@@ -56,6 +56,7 @@ board create_board() {
     int count = 0;
     for (int i = 0; i < 9; ++i) {
         game_board[i].occupied_by = 0;
+        game_board[i].index = i + 1;
         if (i != 4) {
             game_board[i].adjacent[0] = &game_board[adjacencyMatrix[i][0]];
             game_board[i].adjacent[1] = &game_board[adjacencyMatrix[i][1]];
@@ -84,7 +85,7 @@ void output_board(board game_board) {
     }
 }
 void output_possible(board game_board, int player) {
-int number = 1;
+    int number = 1;
     printf("Player 1 : X, Player -1 : Y\nBoard :\n");
     for (int i = 0; i < 9; ++i) {
         if (game_board[i].occupied_by == 0)
@@ -93,17 +94,42 @@ int number = 1;
             if (player != 1)
                 printf("X");
             else {
-                printf("%d",number);
+                printf("\033[0;36m%d\033[0m", number);
                 number++;
             }
-        }
-        else {
+        } else {
             if (player != -1)
                 printf("O");
             else {
-                printf("%d",number);
+                printf("\033[0;36m%d\033[0m", number);
                 number++;
             }
+        }
+
+        if (i == 2 || i == 5 || i == 8)
+            printf("\n");
+        else
+            printf(" ");
+    }
+}
+
+void output_adjacent(board game_board, int place, const int *squares) {
+    for (int i = 0; i < 3; ++i) {
+        printf("%d ", game_board[place].adjacent[squares[i]]->index);
+    }
+    int index = 0;
+    printf("Player 1 : X, Player -1 : Y\nBoard :\n");
+    for (int i = 0; i < 9; ++i) {
+        if (game_board[i].occupied_by == 0) {
+            if ((game_board[place].adjacent[squares[index]]->index) - 1 == i) {
+                printf("\033[0;35m%d\033[0m", index + 1);
+                index++;
+            } else
+                printf(".");
+        } else if (game_board[i].occupied_by == 1) {
+            printf("X");
+        } else {
+            printf("O");
         }
 
         if (i == 2 || i == 5 || i == 8)
