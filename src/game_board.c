@@ -114,7 +114,6 @@ void output_possible(board game_board, int player) {
 
 void output_adjacent(board game_board, int place, const int *squares) {
     int index = 0;
-    printf("Player 1 : X, Player -1 : Y\nBoard :\n");
     for (int i = 0; i < 9; ++i) {
         if (game_board[i].occupied_by == 0) {
             if (game_board[place].adjacent[squares[index]] == &game_board[i]) {
@@ -230,19 +229,20 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         pair.best_move = -1;
         return pair;
     }
-    if (n >= max_depth) {
+    if (n > max_depth) {
         pair.eval = 0;
         pair.best_move = -1;
         return pair;
     }
     if (maximizing) {
-        int max_eval = -100;
+        int max_eval = -50;
         int best_move = -1;
 
         for (int i = 0; i < 9; ++i) {
             board next_playing_board = next_board(game_board, i, n);
             if (next_playing_board != nullptr) {
                 int eval = minimax(next_playing_board, maximizing, n + 1, max_depth).eval;
+
                 if (eval >= max_eval) {
                     max_eval = eval;
                     best_move = i;
@@ -255,7 +255,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         pair.best_move = best_move;
         return pair;
     } else {
-        int min_eval = 100;
+        int min_eval = 5;
         int best_move = -1;
         for (int i = 0; i < 9; ++i) {
             board next_playing_board = next_board(game_board, i, n);
