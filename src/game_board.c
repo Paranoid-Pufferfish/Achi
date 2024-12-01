@@ -86,7 +86,6 @@ void output_board(board game_board) {
 
 void output_possible(board game_board, int player) {
     int number = 1;
-    printf("Player 1 : X, Player -1 : Y\nBoard :\n");
     for (int i = 0; i < 9; ++i) {
         if (game_board[i].occupied_by == 0)
             printf(".");
@@ -243,8 +242,8 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         for (int i = 0; i < 9; ++i) {
             board next_playing_board = next_board(game_board, i, n);
             if (next_playing_board != nullptr) {
-                int eval = minimax(next_playing_board, false, n + 1, max_depth).eval;
-                if (eval > max_eval) {
+                int eval = minimax(next_playing_board, maximizing, n + 1, max_depth).eval;
+                if (eval >= max_eval) {
                     max_eval = eval;
                     best_move = i;
                 }
@@ -262,7 +261,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
             board next_playing_board = next_board(game_board, i, n);
             if (next_playing_board != nullptr) {
                 int eval = minimax(next_playing_board, true, n + 1, max_depth).eval;
-                if (eval < min_eval) {
+                if (eval <= min_eval) {
                     min_eval = eval;
                     best_move = i;
                 }
