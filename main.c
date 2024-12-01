@@ -1,333 +1,131 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "achi_board.h"
+#include <time.h>
+#include <math.h>
+#include "game_board.h"
 
-typedef struct tree {
-    int state[9];
-    struct tree *next[9];
-} tree;
-
-typedef struct pair {
-    int eval;
-    int best_move;
-} pair;
-
-int isTerminal(const tree *tree) {
-    for (int i = -1; i < 2; ++i) {
-        if (i != 0) {
-            for (int j = 0; j < 3; ++j) {
-                if (tree->state[j * 3] == i &&
-                    tree->state[j * 3 + 1] == i &&
-                    tree->state[j * 3 + 2] == i) {
-                    return i;
-                }
-                if (tree->state[j] == i &&
-                    tree->state[j + 3] == i &&
-                    tree->state[j + 6] == i) {
-                    return i;
-                }
-            }
-            if (tree->state[0] == i &&
-                tree->state[4] == i &&
-                tree->state[8] == i) {
-                return i;
-            }
-            if (tree->state[2] == i &&
-                tree->state[4] == i &&
-                tree->state[6] == i) {
-                return i;
-            }
-        }
-    }
-    return 0;
-}
-
-bool isFinal(const tree *tree) {
-    for (int i = 0; i < 9; ++i) {
-        if (tree->next[i] != nullptr)
-            return false;
-    }
-    return true;
-}
-
-tree *nextPlacement(const tree *previous, const int place, const int turn) {
-    if (previous->state[place] != 0 || isTerminal(previous) != 0)
-        return nullptr;
-    tree *P = malloc(sizeof(tree));
-    for (int i = 0; i < 9; ++i) {
-        P->state[i] = previous->state[i];
-    }
-    for (int i = 0; i < 9; ++i) {
-        for (int j = 0; j < 10; ++j) {
-            P->next[i] = nullptr;
-        }
-    }
-    P->state[place] = turn;
-    return P;
-}
-
-// tree *nextMove(const tree *previous, const int initPlace, const int finalPlace, const int turn) {
-//     if (previous->state[initPlace] != turn || previous->state[finalPlace] != 0 || isTerminal(previous))
-//         return nullptr;
-//     tree *P = malloc(sizeof(tree));
-//     for (int i = 0; i < 9; ++i) {
-//         P->state[i] = previous->state[i];
-//     }
-//     P->state[initPlace] = 0;
-//     P->state[finalPlace] = turn;
-//     return P;
-// }
-//NOLINTBEGIN(misc-no-recursion)
-tree *initTree(const tree *previous, const int place, const int turn, const int n, const int depth) {
-    tree *P = nextPlacement(previous, place, turn);
-    if (n > depth || P == nullptr)
-        return nullptr;
-    int t;
-    for (int i = 0; i < 9; ++i) {
-        if (turn == 1)
-            t = -1;
-        else
-            t = 1;
-        if (n < depth)
-            P->next[i] = initTree(P, i, t, n + 1, depth);
-    }
-    return P;
-}
-//NOLINTEND(misc-no-recursion)
-void outputTree(const tree *T) {
-    for (int i = 0; i < 9; ++i) {
-        if (T->state[i] == 0)
-            printf(".");
-        else if (T->state[i] == 1)
-            printf(PLAYER1CHAR);
-        else
-            printf(PLAYER2CHAR);
-
-        if (i == 2 || i == 5 || i == 8)
-            printf("\n");
-        else
-            printf(" ");
-    }
-}
-
-tree *makeTree() {
-    tree *Tree = malloc(sizeof(tree));
-    for (int i = 0; i < 9; ++i) {
-        Tree->state[i] = 0;
-        Tree->next[i] = nullptr;
-    }
-    for (int i = 0; i < 9; ++i) {
-        Tree->next[i] = initTree(Tree, i, 1, 1, 6);
-    }
-    return Tree;
-}
-//NOLINTBEGIN(misc-no-recursion)
-void freeAll(tree *P) {
-    if (P != nullptr) {
-        for (int i = 0; i < 9; ++i) {
-            freeAll(P->next[i]);
-        }
-        free(P);
-    }
-}
-//NOLINTEND(misc-no-recursion)
-void getPlayerPieces(const board *B, int turn, int *count, int *pieces) {
-    *count = 0;
-    for (int i = 0; i < 9; ++i) {
-        if (B->nodes[i].occupiedBy == turn) {
-            pieces[*count] = i;
-            (*count)++;
-        }
-    }
-}
-
-bool outputPossibleMove(const board *B, const int place, int *num, int count) {
-    if (B->nodes[place].occupiedBy != B->turn) {
-        printf("Not your piece!!!\n");
-        return false;
-    }
-    if (place > 8 || place < 0) {
-        printf("Not a Valid piece!!!\n");
-        return false;
-    }
-    count = 0;
-    if (place == 4) {
-        for (int i = 0; i < 8; ++i) {
-            if (B->nodes[place].adjacent[i]->occupiedBy == 0) {
-                num[count] = i;
-                count++;
-            }
-        }
+int player_play(board game_board, int round, int player) {
+    int place;
+    char buf[6];
+    if (round < ((player == 1) ? 6 : 7)) {
+        do {
+            printf("N°%d : Player %c, play your move (1-9): ", round, (player == 1) ? 'X' : 'O');
+        } while (!fgets(buf, 5,stdin) || strtol(buf, nullptr, 10) > 9 || strtol(buf, nullptr, 10) < 1);
+        place = (int) strtol(buf, nullptr, 10) - 1;
     } else {
-        for (int i = 0; i < 3; ++i) {
-            if (B->nodes[place].adjacent[i]->occupiedBy == 0) {
-                num[count] = i;
-                count++;
-            }
-        }
+        output_possible(game_board, 1);
+        int number_played = 0;
+        int player_squares[3] = {-1, -1, -1};
+        int number_played2 = 0;
+        int possible_squares[3] = {-1, -1, -1};
+        get_played(game_board, &number_played, player, player_squares);
+        do {
+            do {
+                printf("N°%d : Player %c, Select the piece you want to move: ",
+                       round, (player == 1) ? 'X' : 'O');
+            } while (!fgets(buf, 5,stdin) || strtol(buf, nullptr, 10) > 3 || strtol(buf, nullptr, 10) < 1);
+            place = (int) (strtol(buf, nullptr, 10) - 1) * 3;
+            get_adjacent(game_board, &number_played2, player_squares[place / 3], possible_squares);
+            if (number_played2 <= 0)
+                printf("No adjacent squares found\n");
+        } while (number_played2 <= 0);
+        output_adjacent(game_board, player_squares[place / 3], possible_squares);
+        do {
+            printf("N°%d : Player %c, Select the neighbour you want to move it to: ",
+                   round, (player == 1) ? 'X' : 'O');
+        } while (!fgets(buf, 5,stdin));
+        place = place + (int) (strtol(buf, nullptr, 10) - 1);
     }
-    for (int i = 0; i < 9; ++i) {
-        if (B->nodes[i].occupiedBy == 0) {
-            int t = true;
-            for (int j = 0; j < count; ++j) {
-                if (B->nodes[place].adjacent[num[j]]->index == i) {
-                    printf("\033[0;35m%d\033[0m", j);
-                    t = false;
-                }
-            }
-            if (t)
-                printf(".");
-        } else if (B->nodes[i].occupiedBy == 1) {
-            if (place == i)
-                printf("\033[0;36m");
-            printf(PLAYER1CHAR);
-            if (place == i)
-                printf("\033[0m");
-        } else {
-            if (place == i)
-                printf("\033[0;36m");
-            printf(PLAYER2CHAR);
-            if (place == i)
-                printf("\033[0m");
-        }
+    return place;
+}
 
-        if (i == 2 || i == 5 || i == 8)
-            printf("\n");
-        else
-            printf(" ");
-    }
-    return true;
+int ai_play(board game_board, int round, int minimizing, int max_rounds) {
+    clock_t begin = clock();
+    pair hint = minimax(game_board, minimizing, round, max_rounds);
+    int place = hint.best_move;
+    clock_t end = clock();
+    double time_spent = (double) (end - begin) / CLOCKS_PER_SEC;
+    printf("N°%d : The IA played %d with an eval of %d and a time of %fs\n", round, place + 1, hint.eval, time_spent);
+    return place;
 }
-//NOLINTBEGIN(misc-no-recursion)
-pair minimax(const tree *board, const bool maximizing) {
-    pair pair;
-    if (isTerminal(board) == 1) {
-        pair.eval = 1;
-        pair.best_move = -1;
-        return pair;
-    }
-    if (isTerminal(board) == -1) {
-        pair.eval = -1;
-        pair.best_move = -1;
-        return pair;
-    }
-    if (isFinal(board)) {
-        pair.eval = 0;
-        pair.best_move = -1;
-        return pair;
-    }
-    if (maximizing) {
-        int max_eval = -100;
-        int best_move = -1;
-        for (int i = 0; i < 9; ++i) {
-            if (board->next[i] != nullptr) {
-                int eval = minimax(board->next[i], false).eval;
-                if (eval > max_eval) {
-                    max_eval = eval;
-                    best_move = i;
-                }
-            }
-        }
-        pair.eval = max_eval;
-        pair.best_move = best_move;
-        return pair;
-    } else {
-        int min_eval = 100;
-        int best_move = -1;
-        for (int i = 0; i < 9; ++i) {
-            if (board->next[i] != nullptr) {
-                int eval = minimax(board->next[i], true).eval;
-                if (eval < min_eval) {
-                    min_eval = eval;
-                    best_move = i;
-                }
-            }
-        }
-        pair.eval = min_eval;
-        pair.best_move = best_move;
-        return pair;
-    }
-}
-//NOLINTEND(misc-no-recursion)
+
 int main(void) {
-    tree *T = makeTree();
-    tree *P = T;
-    board playingBoard = initBoard();
-    char buf[5];
-    int i = 1;
-    int pos;
-    int startFirst = 0;
-    printf("Would you want to play VS an AI ? [1 for yes, 0 for no]: ");
-    fgets(buf, 5,stdin);
-    bool ai = strtol(buf, nullptr, 10);
-    if (ai)
-        printf("Player VS AI\n");
-    else
-        printf("Player VS Player\n");
-    printf("Would you want to start first ? [1 for yes, 0 for no]: ");
-    fgets(buf, 5,stdin);
-    startFirst = !strtol(buf, nullptr, 10);
-    if (startFirst)
-        printf("AI plays first\n");
-    else
-        printf("You play first\n");
-    while (!isWinningBoard(&playingBoard) && i < 13) {
-        if (i <= 6)
-            printf("====Placement phase====\n");
-        else
-            printf("====Moving phase====\n");
-        if (i <= 6) {
-            outputTree(P);
-            // outputBoard(&playingBoard);
-            //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
-            if (ai) {
-                if (i % 2 == startFirst)
-                    pos = minimax(P, startFirst).best_move;
-                else {
-                    printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
-                    fgets(buf, 5,stdin);
-                    pos = strtol(buf, nullptr, 10);
-                }
+    int round = 1;
+    char buf[6];
+    do {
+        printf("Select your mode:\n1)PVP\n2)PVA\n3)AVA\nInput: ");
+    } while (!fgets(buf, 5,stdin) || strtol(buf, nullptr, 10) > 3 || strtol(buf, nullptr, 10) < 1);
+    int game_mode = (int) strtol(buf, nullptr, 10);
+    int turn = 1;
+    bool ai_first = false;
+    switch (game_mode) {
+        case 1: printf("Playing against a human\n");
+            break;
+        case 2: printf("Playing against an AI\n");
+            do {
+                printf("Would you like to start first?\n1)Yes\n2)No\nInput: ");
+            } while (!fgets(buf, 5,stdin) || strtol(buf, nullptr, 10) > 2 || strtol(buf, nullptr, 10) < 1);
+            turn = (strtol(buf, nullptr, 10) == 1) ? 1 : -1;
+            ai_first = (strtol(buf, nullptr, 10) == 1) ? false : true;
+            printf((turn == 1) ? "You start first\n" : "You start second\n");
+            break;
+        case 3: printf("Letting an AI play against an AI\n");
+            break;
+        default: printf("Error that should never happen, if it appears, you are cooked\n");
+            break;
+    }
+    do {
+        printf(
+            "How Many rounds do you want to play? (The more rounds, the more time it will take to calculate a move. Suggested : 12):\nInput: ");
+    } while (!fgets(buf, 5,stdin) || (int) strtol(buf, nullptr, 10) <= 0);
+    const int max_rounds = (int) strtol(buf, nullptr, 10) + 1;
+    printf("Estimated number of possible boards : %.0f\n", pow(9, max_rounds));
+    board game_board = create_board();
+    board P = game_board;
+    while (!is_winning(game_board) && max_rounds > round) {
+        P = game_board;
+        output_board(game_board);
+        int place;
+        if (game_mode == 1) {
+            if (turn == 1) {
+                place = player_play(game_board, round, 1);
+                turn = -1;
             } else {
-                printf("N°%d : Player %d, play your move (0-9) : ", i, playingBoard.turn);
-                fgets(buf, 5,stdin);
-                pos = strtol(buf, nullptr, 10);
+                place = player_play(game_board, round, -1);
+                turn = 1;
             }
-            if (playMove(&playingBoard, pos)) {
-                P = P->next[pos];
-                i++;
+        } else if (game_mode == 2) {
+            if (turn == 1) {
+                place = player_play(game_board, round, (ai_first ? -1 : 1));
+                turn = -1;
+            } else {
+                place = ai_play(game_board, round, ai_first, max_rounds - 1);
+                turn = 1;
             }
-            if (i == 7)
-                freeAll(P);
-            //NOLINTEND(cppcoreguidelines-narrowing-conversions)
         } else {
-            int finals[3];
-            int count1 = 0;
-            int places[3];
-            int count2 = 0;
-            outputBoard(&playingBoard);
-            //NOLINTBEGIN(cppcoreguidelines-narrowing-conversions)
-            printf("N°%d : Player %d, Select the piece you want to move : ", i, playingBoard.turn);
-            getPlayerPieces(&playingBoard, playingBoard.turn, &count2, places);
-            fgets(buf, 5,stdin);
-            const int init = strtol(buf, nullptr, 10);
-            if (outputPossibleMove(&playingBoard, places[init], finals, count1)) {
-                printf("N°%d : Player %d, Select the place you want to move it to : ", i, playingBoard.turn);
-                fgets(buf, 5,stdin);
-                const int final = strtol(buf, nullptr, 10);
-                if (movePiece(&playingBoard, places[init],
-                              playingBoard.nodes[places[init]].adjacent[finals[final]]->index))
-                    i++;
+            if (turn == 1) {
+                place = ai_play(game_board, round, false, max_rounds-1);
+                turn = -1;
+            } else {
+                place = ai_play(game_board, round, true, max_rounds-1);
+                turn = 1;
             }
-            //NOLINTEND(cppcoreguidelines-narrowing-conversions)
+        }
+        game_board = next_board(game_board, place, round);
+        if (game_board == nullptr) {
+            printf("There was an error, try again\n");
+            game_board = P;
+        } else {
+            free(P);
+            round++;
         }
     }
-    outputBoard(&playingBoard);
-    if (i >= 13)
-        printf("Tie");
-    else
-        printf("After %d moves, The player %d lost !!!", i, playingBoard.turn);
-
-    free(playingBoard.nodes);
+    output_board(game_board);
+    if (is_winning(game_board)) {
+        printf("Player %c wins !!!\n", ((is_winning(game_board) == 1) ? 'X' : 'O'));
+    } else {
+        printf("Tie\n");
+    }
+    free(game_board);
     return 0;
 }
