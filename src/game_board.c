@@ -219,6 +219,11 @@ board next_board(board game_board, int placement, int round) {
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
     pair pair;
+    if (n > max_depth) {
+        pair.eval = 0;
+        pair.best_move = -1;
+        return pair;
+    }
     if (is_winning(game_board) == 1) {
         pair.eval = 1;
         pair.best_move = -1;
@@ -229,11 +234,6 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         pair.best_move = -1;
         return pair;
     }
-    if (n > max_depth) {
-        pair.eval = 0;
-        pair.best_move = -1;
-        return pair;
-    }
     if (maximizing) {
         int max_eval = -50;
         int best_move = -1;
@@ -241,7 +241,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         for (int i = 0; i < 9; ++i) {
             board next_playing_board = next_board(game_board, i, n);
             if (next_playing_board != nullptr) {
-                int eval = minimax(next_playing_board, maximizing, n + 1, max_depth).eval;
+                int eval = minimax(next_playing_board, false, n + 1, max_depth).eval;
 
                 if (eval >= max_eval) {
                     max_eval = eval;
