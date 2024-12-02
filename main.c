@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
 #include "game_board.h"
 
 int player_play(board game_board, int round, int player) {
@@ -79,7 +78,6 @@ int main(void) {
             "How Many rounds do you want to play? (The more rounds, the more time it will take to calculate a move. Suggested : 12):\nInput: ");
     } while (!fgets(buf, 5,stdin) || (int) strtol(buf, nullptr, 10) <= 0);
     const int max_rounds = (int) strtol(buf, nullptr, 10) + 1;
-    printf("Estimated number of possible boards : %.0f\n", pow(9, max_rounds));
     board game_board = create_board();
     board P = game_board;
     while (!is_winning(game_board) && max_rounds > round) {
