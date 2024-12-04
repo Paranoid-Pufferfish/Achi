@@ -10,10 +10,6 @@ typedef struct square {
     struct square *adjacent[8];
 } square;
 
-typedef struct pair {
-    int eval;
-    int best_move;
-} pair;
 
 typedef square *board;
 
@@ -28,8 +24,6 @@ void get_played(board game_board, int *number, int player, int *empty_squares);
 void get_adjacent(board game_board, int *number, int place, int *adjacents);
 
 board next_board(board game_board, int placement, int round);
-
-pair minimax(board game_board, const bool maximizing, int n, int max_depth);
 
 void output_possible(board game_board, int player);
 
