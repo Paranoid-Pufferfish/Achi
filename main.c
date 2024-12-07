@@ -19,7 +19,8 @@ typedef enum achi_scene {
     ACHI_END,
 } achi_scene;
 
-void achi_menu(SDL_Renderer *renderer, TTF_Font *font, TTF_TextEngine *text_engine,SDL_Cursor *pointing_cursor, bool *quit) {
+void achi_menu(SDL_Renderer *renderer, TTF_Font *font, TTF_TextEngine *text_engine, SDL_Cursor *pointing_cursor,
+               bool *quit) {
     SDL_Event event;
     TTF_Text *welcome_text = TTF_CreateText(text_engine, font, "Welcome to the Achi game!", 0);
     TTF_Text *PVP_text = TTF_CreateText(text_engine, font, "1) Player VS Player", 0);
