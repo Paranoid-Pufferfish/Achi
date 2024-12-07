@@ -1,0 +1,117 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
+#include <SDL3_ttf/SDL_ttf.h>
+#define SCREEN_WIDTH 1360
+#define SCREEN_HEIGHT 740
+#define BOARD_DIMS 500
+
+int main(void) {
+    SDL_Window *window;
+    SDL_Renderer *renderer;
+    if (!SDL_Init(SDL_INIT_VIDEO) || !TTF_Init()) {
+        printf("Error initializing SDL : %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_Log("Initialization successful\n");
+    if (!SDL_CreateWindowAndRenderer("Hello World", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, &window,
+                                     &renderer)) {
+        printf("Error Creating Window and Renderer : %s\n", SDL_GetError());
+        return 1;
+    }
+    bool quit = false;
+    SDL_Event event;
+    SDL_FRect board = {
+        (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2, BOARD_DIMS, BOARD_DIMS
+    };
+    SDL_Texture *inactive_idiot = IMG_LoadTexture(renderer, "../media/miku.png");
+    if (inactive_idiot == nullptr) {
+        SDL_Log("Cannot import assets : %s\n",SDL_GetError());
+        return 1;
+    }
+    SDL_Texture *active_idiot = IMG_LoadTexture(renderer, "../media/cirno_alt.png");
+    if (active_idiot == nullptr) {
+        SDL_Log("Cannot import assets : %s\n",SDL_GetError());
+        return 1;
+    }
+    SDL_Texture *power_idiot = IMG_LoadTexture(renderer, "../media/cirno.jpg");
+    if (power_idiot == nullptr) {
+        SDL_Log("Cannot import assets : %s\n",SDL_GetError());
+        return 1;
+    }
+    TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 25);
+    if (font== nullptr) {
+        SDL_Log("Cannot import assets : %s\n",SDL_GetError());
+        return 1;
+    }
+    SDL_Surface *text_surface = TTF_RenderText_Solid(font, "Hover over the Idiot!", 0,
+                                                     (SDL_Color){0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE});
+    SDL_Texture *text_tex = SDL_CreateTextureFromSurface(renderer,text_surface);
+    SDL_DestroySurface(text_surface);
+    SDL_FPoint hot_points[9];
+    SDL_Cursor *pointing = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+    SDL_Cursor *default_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    bool active_points[9] = {false, true, true, false, true, false, true, false, true};
+    hot_points[0] = (SDL_FPoint){board.x, board.y};
+    hot_points[1] = (SDL_FPoint){board.x + (float) BOARD_DIMS / 2, board.y};
+    hot_points[2] = (SDL_FPoint){board.x + (float) BOARD_DIMS, board.y};
+    hot_points[3] = (SDL_FPoint){board.x, board.y + (float) BOARD_DIMS / 2};
+    hot_points[4] = (SDL_FPoint){board.x + (float) BOARD_DIMS / 2, board.y + (float) BOARD_DIMS / 2};
+    hot_points[5] = (SDL_FPoint){board.x + (float) BOARD_DIMS, board.y + (float) BOARD_DIMS / 2};
+    hot_points[6] = (SDL_FPoint){board.x, board.y + (float) BOARD_DIMS};
+    hot_points[7] = (SDL_FPoint){board.x + (float) BOARD_DIMS / 2, board.y + (float) BOARD_DIMS};
+    hot_points[8] = (SDL_FPoint){board.x + (float) BOARD_DIMS, board.y + (float) BOARD_DIMS};
+    float text_w = 0;
+    float text_h = 0;
+    SDL_GetTextureSize(text_tex,&text_w,&text_h);
+    SDL_FRect text_dest = {(SCREEN_WIDTH-text_w)/2,0,text_w,text_h};
+    while (!quit) {
+        SDL_SetCursor(default_cursor);
+        SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+        SDL_RenderClear(renderer);
+        SDL_RenderTexture(renderer,text_tex,nullptr,&text_dest);
+        SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
+        SDL_RenderRect(renderer, &board);
+        SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
+        SDL_RenderLine(renderer, hot_points[2].x, hot_points[2].y, hot_points[6].x, hot_points[6].y);
+        SDL_RenderLine(renderer, hot_points[3].x, hot_points[3].y, hot_points[5].x, hot_points[5].y);
+        SDL_RenderLine(renderer, hot_points[0].x, hot_points[0].y, hot_points[8].x, hot_points[8].y);
+        float x_pos = 0;
+        float y_pos = 0;
+        SDL_GetMouseState(&x_pos, &y_pos);
+        SDL_FPoint mouse = {x_pos, y_pos};
+        for (int i = 0; i < 9; ++i) {
+            SDL_FRect dsrect = {hot_points[i].x - 50, hot_points[i].y - 50, 100, 100};
+            if (active_points[i]) {
+                if (SDL_PointInRectFloat(&mouse, &dsrect)) {
+                    SDL_SetCursor(pointing);
+                    SDL_RenderTexture(renderer, active_idiot, nullptr, &dsrect);
+                } else {
+                    SDL_RenderTexture(renderer, power_idiot, nullptr, &dsrect);
+                }
+            } else {
+                SDL_RenderTexture(renderer, inactive_idiot, nullptr, &dsrect);
+            }
+        }
+        if (SDL_PollEvent(&event)) {
+            switch (event.type) {
+                case SDL_EVENT_QUIT: quit = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        SDL_RenderPresent(renderer);
+    }
+    SDL_DestroyTexture(text_tex);
+    SDL_DestroyCursor(default_cursor);
+    SDL_DestroyCursor(pointing);
+    SDL_DestroyTexture(inactive_idiot);
+    SDL_DestroyTexture(active_idiot);
+    SDL_DestroyTexture(power_idiot);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 0;
+}
