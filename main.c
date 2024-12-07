@@ -19,8 +19,7 @@ typedef enum achi_scene {
     ACHI_END,
 } achi_scene;
 
-void achi_menu(SDL_Renderer *renderer, TTF_Font *font, TTF_TextEngine *text_engine, SDL_Cursor *default_cursor,
-               SDL_Cursor *pointing_cursor, bool *quit) {
+void achi_menu(SDL_Renderer *renderer, TTF_Font *font, TTF_TextEngine *text_engine,SDL_Cursor *pointing_cursor, bool *quit) {
     SDL_Event event;
     TTF_Text *welcome_text = TTF_CreateText(text_engine, font, "Welcome to the Achi game!", 0);
     TTF_Text *PVP_text = TTF_CreateText(text_engine, font, "1) Player VS Player", 0);
@@ -60,28 +59,28 @@ void achi_menu(SDL_Renderer *renderer, TTF_Font *font, TTF_TextEngine *text_engi
 }
 
 int main(void) {
-    SDL_Window *window;
-    SDL_Renderer *renderer;
-    if (!SDL_Init(!SDL_INIT_VIDEO) || !TTF_Init()) {
-        SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
-        return 1;
-    }
-    if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, &window,
-                                     &renderer)) {
-        SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
-        return 1;
-    }
-
-    achi_scene scene = ACHI_MENU;
-    bool quit = false;
-    TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
-    TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(renderer);
-    SDL_Cursor *pointing = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
-    SDL_Cursor *default_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-    while (!quit) {
-        SDL_SetCursor(default_cursor);
-        achi_menu(renderer, font, text_engine, default_cursor, pointing, &quit);
-    }
+    // SDL_Window *window;
+    // SDL_Renderer *renderer;
+    // if (!SDL_Init(!SDL_INIT_VIDEO) || !TTF_Init()) {
+    //     SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
+    //     return 1;
+    // }
+    // if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, &window,
+    //                                  &renderer)) {
+    //     SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
+    //     return 1;
+    // }
+    //
+    // achi_scene scene = ACHI_MENU;
+    // bool quit = false;
+    // TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
+    // TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(renderer);
+    // SDL_Cursor *pointing = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
+    // SDL_Cursor *default_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    // while (!quit) {
+    //     SDL_SetCursor(default_cursor);
+    //     achi_menu(renderer, font, text_engine, pointing, &quit);
+    // }
     int round = 1;
     int turn = 1;
     int game_mode;
