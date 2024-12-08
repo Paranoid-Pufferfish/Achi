@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-
+#include <math.h>
 #include "decision_tree.h"
 #include "game_board.h"
 
@@ -36,7 +36,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         return pair;
     }
     if (maximizing) {
-        int max_eval = -100;
+        int max_eval = (int) -INFINITY;
         int best_move = -1;
 
         for (int i = 0; i < 9; ++i) {
@@ -55,7 +55,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         pair.best_move = best_move;
         return pair;
     } else {
-        int min_eval = 100;
+        int min_eval = (int) INFINITY;
         int best_move = -1;
         for (int i = 0; i < 9; ++i) {
             board next_playing_board = next_board(game_board, i, n);

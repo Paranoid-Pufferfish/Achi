@@ -106,6 +106,7 @@ void achi_pregame_pvp(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font
     TTF_Text *TITLE_text = TTF_CreateText(text_engine, font, "Player VS Player Mode", 0);
     TTF_Text *ROUNDS_text = TTF_CreateText(text_engine, font, "How many rounds do you want to play?", 0);
     TTF_Text *NEXT_text = TTF_CreateText(text_engine, font_underline, "Next", 0);
+    TTF_Text *BACK_text = TTF_CreateText(text_engine, font_underline, "Go Back", 0);
     *turns = (int) strtol(buf, nullptr, 10);
     TTF_Text *INPUT_text = TTF_CreateText(text_engine, font, buf, 0);
     int text_w = 0;
@@ -116,6 +117,9 @@ void achi_pregame_pvp(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font
     TTF_DrawRendererText(ROUNDS_text, (float) (SCREEN_WIDTH - text_w) / 2, 200);
     TTF_GetTextSize(INPUT_text, &text_w, &text_h);
     TTF_DrawRendererText(INPUT_text, (float) (SCREEN_WIDTH - text_w) / 2, 300);
+    TTF_GetTextSize(BACK_text, &text_w, &text_h);
+    TTF_DrawRendererText(BACK_text, 0, SCREEN_HEIGHT - text_h);
+    SDL_FRect BACK_rect = {0,SCREEN_HEIGHT - text_h, (float) text_w, (float) text_h};
     if (*turns > 0) {
         TTF_GetTextSize(NEXT_text, &text_w, &text_h);
         TTF_DrawRendererText(NEXT_text, SCREEN_WIDTH - text_w, SCREEN_HEIGHT - text_h);
@@ -124,6 +128,8 @@ void achi_pregame_pvp(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font
         if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
             SDL_SetCursor(pointing_cursor);
     }
+    if (SDL_PointInRectFloat(&mouse, &BACK_rect))
+        SDL_SetCursor(pointing_cursor);
     SDL_PropertiesID input_properties_id = SDL_CreateProperties();
     SDL_SetNumberProperty(input_properties_id,SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_NUMBER);
     SDL_StartTextInputWithProperties(window, input_properties_id);
@@ -138,15 +144,19 @@ void achi_pregame_pvp(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font
             case SDL_EVENT_KEY_DOWN:
                 if (event.key.key == SDLK_BACKSPACE && strlen(buf) > 0)
                     buf[strlen(buf) - 1] = '\0';
-                else if (event.key.key == SDLK_RETURN && *turns > 0)
+                else if (event.key.key == SDLK_RETURN && *turns > 0) {
                     *scene = ACHI_GAME_START;
-                *game_mode = 1;
+                    *game_mode = 1;
+                }
                 break;
             case SDL_EVENT_MOUSE_BUTTON_UP:
                 if (event.button.button == SDL_BUTTON_LEFT) {
-                    if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && *turns > 0)
+                    if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && *turns > 0) {
                         *scene = ACHI_GAME_START;
-                    *game_mode = 1;
+                        *game_mode = 1;
+                    }
+                    if (SDL_PointInRectFloat(&mouse, &BACK_rect))
+                        *scene = ACHI_MENU;
                 }
                 break;
             default:
@@ -162,7 +172,7 @@ void achi_pregame_pvp(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font
 }
 
 int main(void) {
-    /*SDL_Window *window;
+    SDL_Window *window;
     SDL_Renderer *renderer;
     if (!SDL_Init(!SDL_INIT_VIDEO) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
@@ -212,67 +222,68 @@ int main(void) {
                 quit = true;
                 break;
         }
-    }*/
-    int round = 1;
-    int turn = 1;
-    int game_mode;
-    int max_rounds = 6;
-    bool ai_first = false;
-    menu(&turn, &game_mode, &max_rounds, &ai_first);
-    board game_board = create_board();
-    while (!is_winning(game_board) && max_rounds > round) {
-        board P = game_board;
+    }
+    /*{
+        int round = 1;
+        int turn = 1;
+        int game_mode;
+        int max_rounds = 6;
+        bool ai_first = false;
+        menu(&turn, &game_mode, &max_rounds, &ai_first);
+        board game_board = create_board();
+        while (!is_winning(game_board) && max_rounds > round) {
+            board P = game_board;
+            output_board(game_board);
+            int place;
+            if (game_mode == 1) {
+                if (turn == 1) {
+                    place = player_play(game_board, round, 1);
+                    turn = -1;
+                } else {
+                    place = player_play(game_board, round, -1);
+                    turn = 1;
+                }
+            } else if (game_mode == 2) {
+                if (turn == 1) {
+                    place = player_play(game_board, round, (ai_first ? -1 : 1));
+                    turn = -1;
+                } else {
+                    place = ai_play(game_board, round, ai_first, max_rounds);
+                    turn = 1;
+                }
+            } else {
+                if (turn == 1) {
+                    place = ai_play(game_board, round, false, max_rounds);
+                    turn = -1;
+                } else {
+                    place = ai_play(game_board, round, true, max_rounds);
+                    turn = 1;
+                }
+            }
+            game_board = next_board(game_board, place, round);
+            if (game_board == nullptr) {
+                printf("There was an error, try again\n");
+                game_board = P;
+            } else {
+                free(P);
+                round++;
+            }
+        }
         output_board(game_board);
-        int place;
-        if (game_mode == 1) {
-            if (turn == 1) {
-                place = player_play(game_board, round, 1);
-                turn = -1;
-            } else {
-                place = player_play(game_board, round, -1);
-                turn = 1;
-            }
-        } else if (game_mode == 2) {
-            if (turn == 1) {
-                place = player_play(game_board, round, (ai_first ? -1 : 1));
-                turn = -1;
-            } else {
-                place = ai_play(game_board, round, ai_first, max_rounds);
-                turn = 1;
-            }
+        if (is_winning(game_board)) {
+            printf("Player %c wins !!!\n", ((is_winning(game_board) == 1) ? 'X' : 'O'));
         } else {
-            if (turn == 1) {
-                place = ai_play(game_board, round, false, max_rounds);
-                turn = -1;
-            } else {
-                place = ai_play(game_board, round, true, max_rounds);
-                turn = 1;
-            }
+            printf("Tie\n");
         }
-        game_board = next_board(game_board, place, round);
-        if (game_board == nullptr) {
-            printf("There was an error, try again\n");
-            game_board = P;
-        } else {
-            free(P);
-            round++;
-        }
-    }
-    output_board(game_board);
-    if (is_winning(game_board)) {
-        printf("Player %c wins !!!\n", ((is_winning(game_board) == 1) ? 'X' : 'O'));
-    } else {
-        printf("Tie\n");
-    }
-    free(game_board);
-
-    /*TTF_DestroyRendererTextEngine(text_engine);
+        free(game_board);
+    }*/
+    TTF_DestroyRendererTextEngine(text_engine);
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyCursor(default_cursor);
     SDL_DestroyCursor(pointing);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_Quit();*/
+    SDL_Quit();
     return 0;
 }
