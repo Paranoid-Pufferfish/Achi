@@ -237,15 +237,15 @@ int main(void) {
                 place = player_play(game_board, round, (ai_first ? -1 : 1));
                 turn = -1;
             } else {
-                place = ai_play(game_board, round, ai_first, max_rounds - 1);
+                place = ai_play(game_board, round, ai_first, max_rounds-1);
                 turn = 1;
             }
         } else {
             if (turn == 1) {
-                place = ai_play(game_board, round, false, max_rounds - 1);
+                place = ai_play(game_board, round, false, max_rounds-1);
                 turn = -1;
             } else {
-                place = ai_play(game_board, round, true, max_rounds - 1);
+                place = ai_play(game_board, round, true, max_rounds-1);
                 turn = 1;
             }
         }
