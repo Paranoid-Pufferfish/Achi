@@ -162,7 +162,7 @@ void achi_pregame_pvp(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font
 }
 
 int main(void) {
-    SDL_Window *window;
+    /*SDL_Window *window;
     SDL_Renderer *renderer;
     if (!SDL_Init(!SDL_INIT_VIDEO) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
@@ -212,8 +212,8 @@ int main(void) {
                 quit = true;
                 break;
         }
-    }
-    /*int round = 1;
+    }*/
+    int round = 1;
     int turn = 1;
     int game_mode;
     int max_rounds = 6;
@@ -237,15 +237,15 @@ int main(void) {
                 place = player_play(game_board, round, (ai_first ? -1 : 1));
                 turn = -1;
             } else {
-                place = ai_play(game_board, round, ai_first, max_rounds-1);
+                place = ai_play(game_board, round, ai_first, max_rounds);
                 turn = 1;
             }
         } else {
             if (turn == 1) {
-                place = ai_play(game_board, round, false, max_rounds-1);
+                place = ai_play(game_board, round, false, max_rounds);
                 turn = -1;
             } else {
-                place = ai_play(game_board, round, true, max_rounds-1);
+                place = ai_play(game_board, round, true, max_rounds);
                 turn = 1;
             }
         }
@@ -264,14 +264,15 @@ int main(void) {
     } else {
         printf("Tie\n");
     }
-    free(game_board);*/
-    TTF_DestroyRendererTextEngine(text_engine);
+    free(game_board);
+
+    /*TTF_DestroyRendererTextEngine(text_engine);
     TTF_CloseFont(font);
     TTF_Quit();
     SDL_DestroyCursor(default_cursor);
     SDL_DestroyCursor(pointing);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    SDL_Quit();
+    SDL_Quit();*/
     return 0;
 }
