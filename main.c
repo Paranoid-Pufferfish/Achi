@@ -57,16 +57,22 @@ int main(void) {
     TTF_SetTextColorFloat(QUIT_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
     TTF_Text *TITLE_text = nullptr;
     TTF_Text *INPUT_text = nullptr;
-    TTF_Text *ROUNDS_text = TTF_CreateText(text_engine, font, "How many rounds do you want to play?", 0);
+    TTF_Text *ROUNDS_text = TTF_CreateText(text_engine, font, "How many rounds do you want to play? (Minimum 6)", 0);
     TTF_Text *NEXT_text = TTF_CreateText(text_engine, font_underlined, "Next", 0);
     TTF_Text *BACK_text = TTF_CreateText(text_engine, font_underlined, "Go Back", 0);
     TTF_Text *PVP_TITLE_text = TTF_CreateText(text_engine, font, "Player VS Player Mode", 0);
     TTF_Text *PVA_TITLE_text = TTF_CreateText(text_engine, font, "Player VS Minimax Mode", 0);
     TTF_Text *AVA_TITLE_text = TTF_CreateText(text_engine, font, "Minimax VS Minimax Mode", 0);
+    TTF_Text *ORDER_text = TTF_CreateText(text_engine, font, "Who would you like to start first ?", 0);
+    TTF_Text *AIFirst_text = TTF_CreateText(text_engine, font, "Minimax", 0);
+    TTF_Text *PlayerFirst_text = TTF_CreateText(text_engine, font, "Player", 0);
     int text_w = 0;
     int text_h = 0;
     TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
     float WELCOME_x = (float) (SCREEN_WIDTH - text_w) / 2;
+
+    TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+    float ORDER_x = (float) (SCREEN_WIDTH - text_w) / 2;
 
     TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
     float ROUNDS_x = (float) (SCREEN_WIDTH - text_w) / 2;
@@ -88,6 +94,12 @@ int main(void) {
 
     TTF_GetTextSize(QUIT_text, &text_w, &text_h);
     SDL_FRect QUIT_rect = {0, 600, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+    SDL_FRect AIFirst_rect = {(float) (SCREEN_WIDTH - text_w) / 4, 400, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+    SDL_FRect PlayerFirst_rect = {3 * (float) (SCREEN_WIDTH - text_w) / 4, 400, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(NEXT_text, &text_w, &text_h);
     TTF_DrawRendererText(NEXT_text, SCREEN_WIDTH - text_w, SCREEN_HEIGHT - text_h);
@@ -175,7 +187,7 @@ int main(void) {
                         case SDL_EVENT_KEY_DOWN:
                             if (event.key.key == SDLK_BACKSPACE && strlen(buf) > 0)
                                 buf[strlen(buf) - 1] = '\0';
-                            else if (event.key.key == SDLK_RETURN && turns > 0) {
+                            else if (event.key.key == SDLK_RETURN && turns >= 6) {
                                 switch (game_mode) {
                                     case 1: scene = ACHI_GAME_START;
                                         break;
@@ -190,7 +202,7 @@ int main(void) {
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
                             if (event.button.button == SDL_BUTTON_LEFT) {
-                                if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && turns > 0) {
+                                if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && turns >= 6) {
                                     switch (game_mode) {
                                         case 1: scene = ACHI_GAME_START;
                                             break;
@@ -212,7 +224,7 @@ int main(void) {
                     }
                 }
                 SDL_StopTextInput(window);
-                if (turns > 0) {
+                if (turns >= 6) {
                     TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
                     if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
                         SDL_SetCursor(pointing_cursor);
@@ -220,10 +232,29 @@ int main(void) {
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect))
                     SDL_SetCursor(pointing_cursor);
 
-
                 break;
-            case ACHI_PREGAME_PVA: SDL_Log("TODO: PVA, GAME MODE : %d. %d Turns", game_mode, turns);
-                quit = true;
+            case ACHI_PREGAME_PVA:
+                TTF_GetTextSize(TITLE_text, &text_w, &text_h);
+                TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
+                TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
+                TTF_DrawRendererText(ORDER_text, ORDER_x, 200);
+                TTF_DrawRendererText(AIFirst_text, AIFirst_rect.x, AIFirst_rect.y);
+                TTF_DrawRendererText(PlayerFirst_text, PlayerFirst_rect.x, PlayerFirst_rect.y);
+                if (SDL_PollEvent(&event)) {
+                    switch (event.type) {
+                        case SDL_EVENT_QUIT: quit = true;
+                            break;
+                        case SDL_EVENT_MOUSE_BUTTON_UP:
+                            if (SDL_PointInRectFloat(&mouse, &BACK_rect)) {
+                                scene = ACHI_PREGAME_ROUNDS;
+                            }
+                            break;
+                    }
+                }
+            // TODO: Click Logic for order
+                if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &PlayerFirst_rect) ||
+                    SDL_PointInRectFloat(&mouse, &AIFirst_rect))
+                    SDL_SetCursor(pointing_cursor);
                 break;
             case ACHI_PREGAME_AVA: SDL_Log("TODO: AVA, GAME MODE : %d. %d Turns", game_mode, turns);
                 quit = true;
