@@ -39,6 +39,8 @@ int main(void) {
     bool quit = false;
     int turns = 0;
     int game_mode = 0;
+    bool ai_first = true;
+    bool order_selected = false;
     TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_underlined = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_SetFontStyle(font_underlined,TTF_STYLE_UNDERLINE);
@@ -248,10 +250,33 @@ int main(void) {
                             if (SDL_PointInRectFloat(&mouse, &BACK_rect)) {
                                 scene = ACHI_PREGAME_ROUNDS;
                             }
+                            if (SDL_PointInRectFloat(&mouse, &AIFirst_rect)) {
+                                ai_first = true;
+                                order_selected = true;
+                                TTF_SetTextColorFloat(AIFirst_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(PlayerFirst_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &PlayerFirst_rect)) {
+                                ai_first = false;
+                                order_selected = true;
+                                TTF_SetTextColorFloat(PlayerFirst_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(AIFirst_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected)
+                                scene = ACHI_GAME_START;
                             break;
+                        case SDL_EVENT_KEY_DOWN:
+                            if (event.key.key == SDLK_RETURN && order_selected)
+                                scene = ACHI_GAME_START;
+                            break;
+                        default: ;
                     }
                 }
-            // TODO: Click Logic for order
+                if (order_selected) {
+                    TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
+                    if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
+                        SDL_SetCursor(pointing_cursor);
+                }
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &PlayerFirst_rect) ||
                     SDL_PointInRectFloat(&mouse, &AIFirst_rect))
                     SDL_SetCursor(pointing_cursor);
@@ -259,7 +284,8 @@ int main(void) {
             case ACHI_PREGAME_AVA: SDL_Log("TODO: AVA, GAME MODE : %d. %d Turns", game_mode, turns);
                 quit = true;
                 break;
-            case ACHI_GAME_START: SDL_Log("TODO: GAME START, GAME MODE : %d. %d Turns", game_mode, turns);
+            case ACHI_GAME_START: SDL_Log("TODO: GAME START\nGame mode : %d\nRounds : %d\nAI plays first : %s\n",
+                                          game_mode, turns, (ai_first) ? "Yes" : "No");
                 quit = true;
                 break;
             case ACHI_END: SDL_Log("TODO: END");
@@ -271,60 +297,6 @@ int main(void) {
         }
         SDL_RenderPresent(renderer);
     }
-    /*{
-        int round = 1;
-        int turn = 1;
-        int game_mode;
-        int max_rounds = 6;
-        bool ai_first = false;
-        menu(&turn, &game_mode, &max_rounds, &ai_first);
-        board game_board = create_board();
-        while (!is_winning(game_board) && max_rounds > round) {
-            board P = game_board;
-            output_board(game_board);
-            int place;
-            if (game_mode == 1) {
-                if (turn == 1) {
-                    place = player_play(game_board, round, 1);
-                    turn = -1;
-                } else {
-                    place = player_play(game_board, round, -1);
-                    turn = 1;
-                }
-            } else if (game_mode == 2) {
-                if (turn == 1) {
-                    place = player_play(game_board, round, (ai_first ? -1 : 1));
-                    turn = -1;
-                } else {
-                    place = ai_play(game_board, round, ai_first, max_rounds);
-                    turn = 1;
-                }
-            } else {
-                if (turn == 1) {
-                    place = ai_play(game_board, round, false, max_rounds);
-                    turn = -1;
-                } else {
-                    place = ai_play(game_board, round, true, max_rounds);
-                    turn = 1;
-                }
-            }
-            game_board = next_board(game_board, place, round);
-            if (game_board == nullptr) {
-                printf("There was an error, try again\n");
-                game_board = P;
-            } else {
-                free(P);
-                round++;
-            }
-        }
-        output_board(game_board);
-        if (is_winning(game_board)) {
-            printf("Player %c wins !!!\n", ((is_winning(game_board) == 1) ? 'X' : 'O'));
-        } else {
-            printf("Tie\n");
-        }
-        free(game_board);
-    }*/
     TTF_DestroyRendererTextEngine(text_engine);
     TTF_CloseFont(font);
     TTF_CloseFont(font_underlined);
