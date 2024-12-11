@@ -9,7 +9,9 @@
 
 #define SCREEN_WIDTH 1360
 #define SCREEN_HEIGHT 740
-#define BOARD_DIMS 500
+#define BOARD_DIMS 450
+#define PLAYER_SIZE 75
+#define EMPTY_SIZE 25
 
 typedef enum ACHI_SCENE {
     ACHI_MENU,
@@ -37,7 +39,8 @@ int main(void) {
 
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
-    int turns = 0;
+    int rounds = 0;
+    int round = 1;
     int game_mode = 0;
     bool ai_first = true;
     bool order_selected = false;
@@ -50,6 +53,34 @@ int main(void) {
     char buf[1024] = {0};
 
     SDL_Event event;
+    SDL_FRect graphical_board = {
+        (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2 + 70, BOARD_DIMS, BOARD_DIMS
+    };
+    board game_board = nullptr;
+    SDL_FPoint hot_points[9];
+    hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+    hot_points[1] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y};
+    hot_points[2] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y};
+    hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + (float) BOARD_DIMS / 2};
+    hot_points[4] = (SDL_FPoint){
+        graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y + (float) BOARD_DIMS / 2
+    };
+    hot_points[5] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y + (float) BOARD_DIMS / 2};
+    hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + (float) BOARD_DIMS};
+    hot_points[7] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y + (float) BOARD_DIMS};
+    hot_points[8] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y + (float) BOARD_DIMS};
+    SDL_Texture *unoccupied_square = IMG_LoadTexture(renderer, "../media/unoccupied_piece.svg");
+    SDL_FRect squares[9];
+    if (unoccupied_square == nullptr) {
+        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_Texture *player_occupied = IMG_LoadTexture(renderer, "../media/player_piece.svg");
+    if (player_occupied == nullptr) {
+        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
+        return 1;
+    }
+
     TTF_Text *WELCOME_text = TTF_CreateText(text_engine, font, "Welcome to the Achi game!", 0);
     TTF_Text *PVP_text = TTF_CreateText(text_engine, font, "1) Player VS Player", 0);
     TTF_Text *PVA_text = TTF_CreateText(text_engine, font, "2) Player VS AI", 0);
@@ -59,6 +90,7 @@ int main(void) {
     TTF_SetTextColorFloat(QUIT_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
     TTF_Text *TITLE_text = nullptr;
     TTF_Text *INPUT_text = nullptr;
+    TTF_Text *ROUND_text = nullptr;
     TTF_Text *ROUNDS_text = TTF_CreateText(text_engine, font, "How many rounds do you want to play? (Minimum 6)", 0);
     TTF_Text *NEXT_text = TTF_CreateText(text_engine, font_underlined, "Next", 0);
     TTF_Text *BACK_text = TTF_CreateText(text_engine, font_underlined, "Go Back", 0);
@@ -174,9 +206,9 @@ int main(void) {
                 TTF_GetTextSize(INPUT_text, &text_w, &text_h);
                 TTF_DrawRendererText(INPUT_text, (float) (SCREEN_WIDTH - text_w) / 2, 300);
                 if (strlen(buf) > 0)
-                    turns = (int) strtol(buf, nullptr, 10);
+                    rounds = (int) strtol(buf, nullptr, 10);
                 else
-                    turns = 0;
+                    rounds = 0;
                 SDL_StartTextInputWithProperties(window, input_properties_id);
                 if (SDL_PollEvent(&event)) {
                     switch (event.type) {
@@ -189,7 +221,7 @@ int main(void) {
                         case SDL_EVENT_KEY_DOWN:
                             if (event.key.key == SDLK_BACKSPACE && strlen(buf) > 0)
                                 buf[strlen(buf) - 1] = '\0';
-                            else if (event.key.key == SDLK_RETURN && turns >= 6) {
+                            else if (event.key.key == SDLK_RETURN && rounds >= 6) {
                                 switch (game_mode) {
                                     case 1: scene = ACHI_GAME_START;
                                         break;
@@ -204,7 +236,7 @@ int main(void) {
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
                             if (event.button.button == SDL_BUTTON_LEFT) {
-                                if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && turns >= 6) {
+                                if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && rounds >= 6) {
                                     switch (game_mode) {
                                         case 1: scene = ACHI_GAME_START;
                                             break;
@@ -226,7 +258,7 @@ int main(void) {
                     }
                 }
                 SDL_StopTextInput(window);
-                if (turns >= 6) {
+                if (rounds >= 6) {
                     TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
                     if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
                         SDL_SetCursor(pointing_cursor);
@@ -281,12 +313,62 @@ int main(void) {
                     SDL_PointInRectFloat(&mouse, &AIFirst_rect))
                     SDL_SetCursor(pointing_cursor);
                 break;
-            case ACHI_PREGAME_AVA: SDL_Log("TODO: AVA, GAME MODE : %d. %d Turns", game_mode, turns);
-                quit = true;
+            case ACHI_PREGAME_AVA: SDL_Log("TODO: AVA, GAME MODE : %d. %d Turns", game_mode, rounds);
+                scene = ACHI_GAME_START;
                 break;
-            case ACHI_GAME_START: SDL_Log("TODO: GAME START\nGame mode : %d\nRounds : %d\nAI plays first : %s\n",
-                                          game_mode, turns, (ai_first) ? "Yes" : "No");
-                quit = true;
+            case ACHI_GAME_START:
+                TTF_GetTextSize(TITLE_text, &text_w, &text_h);
+                TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
+                if (ROUND_text != nullptr)
+                    TTF_DestroyText(ROUND_text);
+                if (game_board == nullptr) {
+                    game_board = create_board();
+                    game_board = next_board(game_board, 5, 1);
+                    game_board = next_board(game_board, 4, 2);
+                }
+                sprintf(buf, "Round N°%d", round);
+                ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
+                TTF_GetTextSize(ROUND_text, &text_w, &text_h);
+                TTF_DrawRendererText(ROUND_text, (float) (SCREEN_WIDTH - text_w) / 2, 75);
+                SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
+                SDL_RenderRect(renderer, &graphical_board);
+                SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
+                SDL_RenderLine(renderer, hot_points[2].x, hot_points[2].y, hot_points[6].x, hot_points[6].y);
+                SDL_RenderLine(renderer, hot_points[3].x, hot_points[3].y, hot_points[5].x, hot_points[5].y);
+                SDL_RenderLine(renderer, hot_points[0].x, hot_points[0].y, hot_points[8].x, hot_points[8].y);
+                SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                for (int i = 0; i < 9; ++i) {
+                    switch (game_board[i].occupied_by) {
+                        case -1:
+                            squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
+                            squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
+                            squares[i].w = squares[i].h = PLAYER_SIZE;
+                            SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
+                            SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
+                            break;
+                        case 0:
+                            squares[i].x = hot_points[i].x - (float) EMPTY_SIZE / 2;
+                            squares[i].y = hot_points[i].y - (float) EMPTY_SIZE / 2;
+                            squares[i].w = squares[i].h = EMPTY_SIZE;
+                            SDL_RenderTexture(renderer, unoccupied_square, nullptr, &squares[i]);
+                            break;
+                        case 1:
+                            squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
+                            squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
+                            squares[i].w = squares[i].h = PLAYER_SIZE;
+                            SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
+                            SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
+                            break;
+                        default: ;
+                    }
+                }
+                if (SDL_PollEvent(&event)) {
+                    switch (event.type) {
+                        case SDL_EVENT_QUIT: quit = true;
+                            break;
+                        default: ;
+                    }
+                }
                 break;
             case ACHI_END: SDL_Log("TODO: END");
                 quit = true;

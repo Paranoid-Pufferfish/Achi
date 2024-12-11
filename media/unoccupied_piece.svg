@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+        xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+        xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+        width="11.982297mm"
+        height="11.986276mm"
+        viewBox="0 0 11.982297 11.986276"
+        version="1.1"
+        id="svg1"
+        sodipodi:docname="black_circle.svg"
+        inkscape:export-filename="Documents/Code/Achi/media/player2_piece.svg"
+        inkscape:export-xdpi="50.899998"
+        inkscape:export-ydpi="50.899998"
+        xmlns="http://www.w3.org/2000/svg">
+    <sodipodi:namedview
+            id="namedview1"
+            pagecolor="#ffffff"
+            bordercolor="#000000"
+            borderopacity="0.25"
+            inkscape:showpageshadow="2"
+            inkscape:pageopacity="0.0"
+            inkscape:pagecheckerboard="0"
+            inkscape:deskcolor="#d1d1d1"
+            inkscape:document-units="mm"/>
+    <defs
+            id="defs1"/>
+    <g
+            inkscape:label="Layer 1"
+            inkscape:groupmode="layer"
+            id="layer1"
+            transform="translate(-103.48447,-91.247081)">
+        <ellipse
+                style="fill:none;stroke:#ffffff;stroke-width:6.02311;stroke-linecap:butt;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+                id="path1"
+                cx="109.47562"
+                cy="97.240219"
+                rx="2.9795935"
+                ry="2.9815824"/>
+    </g>
+</svg>
