@@ -7,9 +7,9 @@
 #include "decision_tree.h"
 #include "game_interface.h"
 
-#define SCREEN_WIDTH 1360
-#define SCREEN_HEIGHT 740
-#define BOARD_DIMS 450
+#define SCREEN_WIDTH 1920
+#define SCREEN_HEIGHT 1080
+#define BOARD_DIMS (SCREEN_HEIGHT-300)
 #define PLAYER_SIZE 75
 #define EMPTY_SIZE 25
 
@@ -49,7 +49,7 @@ int main(void) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
         return 1;
     }
-    if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_RESIZABLE, &window,
+    if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_FULLSCREEN, &window,
                                      &renderer)) {
         SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
         return 1;
