@@ -436,8 +436,7 @@ int main(void) {
                                 if (event.button.button == SDL_BUTTON_LEFT) {
                                     round++;
                                     selected = -1;
-                                }
-                                else {
+                                } else {
                                     round--;
                                     selected = -1;
                                 }
