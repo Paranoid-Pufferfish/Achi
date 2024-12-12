@@ -1,31 +1,49 @@
+### C template
+# Prerequisites
 *.d
+
+# Object files
 *.o
 *.ko
 *.obj
 *.elf
+
+# Linker output
 *.ilk
 *.map
 *.exp
+
+# Precompiled Headers
 *.gch
 *.pch
+
+# Libraries
 *.lib
 *.a
 *.la
 *.lo
+
+# Shared objects (inc. Windows DLLs)
 *.dll
 *.so
 *.so.*
 *.dylib
+
+# Executables
 *.exe
 *.out
 *.app
 *.i*86
 *.x86_64
 *.hex
+
+# Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
+
+# Kernel Module Compile Results
 *.mod*
 *.cmd
 .tmp_versions/
@@ -33,47 +51,21 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/dictionaries
-.idea/**/shelf
-.idea/**/aws.xml
-.idea/**/contentModel.xml
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-.idea/**/dbnavigator.xml
-.idea/**/gradle.xml
-.idea/**/libraries
-cmake-build-*/
-.idea/**/mongoSettings.xml
-*.iws
-out/
-.idea_modules/
-atlassian-ide-plugin.xml
-.idea/replstate.xml
-.idea/sonarlint/
-com_crashlytics_export_strings.xml
-crashlytics.properties
-crashlytics-build.properties
-fabric.properties
-.idea/httpRequests
-.idea/caches/build_file_checksums.ser
-/subprojects/*
-!/subprojects/*.wrap
-meson-logs
-meson-private
-meson_benchmark_setup.dat
-meson_test_setup.dat
-sanitycheckcpp.cc     # C++ specific
-sanitycheckcpp.exe    # C++ specific
-build.ninja
-.ninja_deps
-.ninja_logs
+
+### CMake template
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
 compile_commands.json
+CTestTestfile.cmake
+_deps
+CMakeUserPresets.json
+cmake-build-*/
+
+### IDEA
 .idea
-.buildDir
