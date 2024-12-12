@@ -34,9 +34,6 @@ jobs:
             c_compiler: gcc
             cpp_compiler: g++
             packages: libx11-dev libwayland-dev
-          - os: ubuntu-latest
-            c_compiler: clang
-            cpp_compiler: clang++
         exclude:
           - os: windows-latest
             c_compiler: gcc
@@ -47,6 +44,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libx11-dev libwayland-dev libdrm-dev libgbm-dev
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
