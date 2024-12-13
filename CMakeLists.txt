@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -g -O1")
 project(Achi C)
 set(CMAKE_C_STANDARD 23)
 include(FetchContent)

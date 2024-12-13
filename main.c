@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -7,8 +8,8 @@
 #include "decision_tree.h"
 #include "game_interface.h"
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 1366
+#define SCREEN_HEIGHT 768
 #define BOARD_DIMS (SCREEN_HEIGHT-300)
 #define PLAYER_SIZE 75
 #define EMPTY_SIZE 25
@@ -30,31 +31,31 @@ typedef enum GAME_MODE {
     GAME_MODE_AVA
 } GAME_MODE;
 
-const int adjacencyMatrix2[9][2] = {
-    {1, 3},
-    {0, 2},
-    {1, 5},
-    {0, 6},
-    {4, 4}, // Place holder
-    {2, 8},
-    {3, 7},
-    {6, 8},
-    {7, 5}
+const int adjacencyMatrix2[9][3] = {
+    {1, 3, 4},
+    {0, 2, 4},
+    {1, 5, 4},
+    {0, 6, 4},
+    {4, 4, 4}, // Place holder
+    {2, 8, 4},
+    {3, 7, 4},
+    {6, 8, 4},
+    {7, 5, 4}
 };
+const int adjacent_to_center[8] = {0, 1, 2, 3, 5, 6, 7, 8};
 
 int main(void) {
     SDL_Window *window;
     SDL_Renderer *renderer;
-    if (!SDL_Init(!SDL_INIT_VIDEO) || !TTF_Init()) {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
         return 1;
     }
-    if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_FULLSCREEN, &window,
+    if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window,
                                      &renderer)) {
         SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
         return 1;
     }
-
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     int max_rounds = 0;
@@ -75,6 +76,7 @@ int main(void) {
         (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2 + 70, BOARD_DIMS, BOARD_DIMS
     };
     board game_board = nullptr;
+    board board_cleaner = nullptr;
     SDL_FPoint hot_points[9];
     hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
     hot_points[1] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y};
@@ -98,7 +100,6 @@ int main(void) {
         SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
     }
-
     TTF_Text *WELCOME_text = TTF_CreateText(text_engine, font, "Welcome to the Achi game!", 0);
     TTF_Text *PVP_text = TTF_CreateText(text_engine, font, "1) Player VS Player", 0);
     TTF_Text *PVA_text = TTF_CreateText(text_engine, font, "2) Player VS AI", 0);
@@ -185,6 +186,8 @@ int main(void) {
                     switch (event.type) {
                         case SDL_EVENT_QUIT: quit = true;
                             break;
+                        case SDL_EVENT_GAMEPAD_BUTTON_UP:
+                            SDL_Log("BUTTON A PRESSED");
                         case SDL_EVENT_MOUSE_BUTTON_UP:
                             if (event.button.button == SDL_BUTTON_LEFT) {
                                 if (SDL_PointInRectFloat(&mouse, &PVP_rect)) {
@@ -342,8 +345,10 @@ int main(void) {
                 TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
                 if (ROUND_text != nullptr)
                     TTF_DestroyText(ROUND_text);
-                if (game_board == nullptr)
+                if (game_board == nullptr) {
                     game_board = create_board();
+                    board_cleaner = game_board;
+                }
                 if (is_winning(game_board) || round > max_rounds)
                     scene = ACHI_END;
 
@@ -444,14 +449,46 @@ int main(void) {
                             if (game_mode == GAME_MODE_PVP) {
                                 if (round <= 6) {
                                     for (int i = 0; i < 9; ++i) {
-                                        if (game_board[i].occupied_by == 0 && SDL_PointInRectFloat(&mouse, &squares[i]))
+                                        if (game_board[i].occupied_by == 0 &&
+                                            SDL_PointInRectFloat(&mouse, &squares[i])) {
                                             game_board = next_board(game_board, i, round++);
+                                            free(board_cleaner);
+                                            board_cleaner = game_board;
+                                        }
                                     }
                                 } else {
                                     for (int i = 0; i < 9; ++i) {
                                         if ((game_board[i].occupied_by == ((turn == 2) ? -1 : turn)) &&
                                             SDL_PointInRectFloat(&mouse, &squares[i])) {
                                             selected = i;
+                                        }
+                                        if (selected != -1) {
+                                            int number_played = 0;
+                                            int player_squares[3] = {-1, -1, -1};
+                                            int number_adjacent = 0;
+                                            int adjacent_squares[3] = {-1, -1, -1};
+                                            int selected_index;
+                                            get_played(game_board, &number_played, ((turn == 2) ? -1 : turn),
+                                                       player_squares);
+                                            for (int j = 0; j < number_played; ++j) {
+                                                if (selected == player_squares[j]) {
+                                                    selected_index=j;
+                                                    break;
+                                                }
+                                            }
+                                            get_adjacent(game_board, &number_adjacent, selected, adjacent_squares);
+                                            for (int j = 0; j < number_adjacent; ++j) {
+                                                int current_adjacent = (selected == 4)
+                                                                           ? adjacent_to_center[adjacent_squares[j]]
+                                                                           : adjacencyMatrix2[selected][adjacent_squares
+                                                                               [j]];
+                                                if (SDL_PointInRectFloat(&mouse, &squares[current_adjacent])) {
+                                                    selected = -1;
+                                                    game_board = next_board(game_board,selected_index*3+j,round++);
+                                                    free(board_cleaner);
+                                                    board_cleaner = game_board;
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -472,6 +509,9 @@ int main(void) {
                             SDL_SetCursor(pointing_cursor);
                     }
                 }
+            if (selected != -1 && game_board[selected].occupied_by != ((turn == 2) ? -1 : turn)){
+                selected = -1;
+            }
                 break;
             case ACHI_END: SDL_Log("TODO: END");
                 quit = true;
@@ -485,20 +525,6 @@ int main(void) {
     TTF_DestroyRendererTextEngine(text_engine);
     TTF_CloseFont(font);
     TTF_CloseFont(font_underlined);
-    TTF_DestroyText(WELCOME_text);
-    TTF_DestroyText(PVP_text);
-    TTF_DestroyText(PVA_text);
-    TTF_DestroyText(AVA_text);
-    TTF_DestroyText(ABOUT_text);
-    TTF_DestroyText(QUIT_text);
-
-    TTF_DestroyText(INPUT_text);
-    TTF_DestroyText(ROUNDS_text);
-    TTF_DestroyText(NEXT_text);
-    TTF_DestroyText(BACK_text);
-    TTF_DestroyText(PVP_TITLE_text);
-    TTF_DestroyText(PVA_TITLE_text);
-    TTF_DestroyText(AVA_TITLE_text);
     TTF_Quit();
     SDL_DestroyCursor(default_cursor);
     SDL_DestroyCursor(pointing_cursor);
