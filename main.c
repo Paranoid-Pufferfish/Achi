@@ -15,6 +15,7 @@
 #define BOARD_DIMS (SCREEN_HEIGHT-300)
 #define PLAYER_SIZE 75
 #define EMPTY_SIZE 25
+#define CREDITS "Authors:\n- MOUHOUS Mathya (G3)\n- AIT MEDDOUR Fouâd-Eddine (G1)\nSoftware Used:\n- SDL3 master (https://github.com/libsdl-org/SDL)\n- SDL3_ttf master (https://github.com/libsdl-org/SDL_ttf)\n- SDL3_image master (https://github.com/libsdl-org/SDL_image)\n- CMake 3.30.6 (https://gitlab.kitware.com/cmake/cmake)\nFont : Acme 9 Regular\nTested On :\n- Ubuntu 24.10\n- Gentoo amd64 Stable\n- Windows 10 KVM/QEMU\n- Windows 11"
 
 typedef enum ACHI_SCENE {
     ACHI_MENU,
@@ -79,6 +80,8 @@ int main(void) {
     bool order_selected = false;
     TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_underlined = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
+    TTF_Font *font_credits = TTF_OpenFont("../media/Acme 9 Regular.ttf", 23);
+    TTF_SetFontWrapAlignment(font_credits, TTF_HORIZONTAL_ALIGN_CENTER);
     TTF_SetFontStyle(font_underlined,TTF_STYLE_UNDERLINE);
     TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(renderer);
     SDL_Cursor *pointing_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
@@ -139,6 +142,16 @@ int main(void) {
     TTF_Text *ALL_RANDOMNESS_text = TTF_CreateText(text_engine, font, "All Randomness", 0);
     TTF_Text *RETRY_text = TTF_CreateText(text_engine, font_underlined, "Play Again", 0);
     TTF_Text *MAIN_MENU_text = TTF_CreateText(text_engine, font_underlined, "Main Menu", 0);
+    TTF_Text *ABOUT_TITLE_text = TTF_CreateText(text_engine, font, "About the project", 0);
+    SDL_Surface *CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
+                                                                       (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
+                                                                       0);
+    SDL_Texture *CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
+    float CREDITS_w;
+    float CREDITS_h;
+    SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+    SDL_FRect CREDITS_rect = {(SCREEN_WIDTH - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
+    SDL_DestroySurface(CREDITS_text_surface);
     int text_w = 0;
     int text_h = 0;
     TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
@@ -146,6 +159,8 @@ int main(void) {
 
     TTF_GetTextSize(ORDER_text, &text_w, &text_h);
     float ORDER_x = (float) (SCREEN_WIDTH - text_w) / 2;
+    TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+    float ABOUT_TITLE_x = (float) (SCREEN_WIDTH - text_w) / 2;
     TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
     float ENTROPY_x = (float) (SCREEN_WIDTH - text_w) / 2;
     TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
@@ -819,8 +834,24 @@ int main(void) {
                     }
                 }
                 break;
-            case ACHI_ABOUT: SDL_Log("TODO: ABOUT");
-                quit = true;
+            case ACHI_ABOUT:
+                TTF_DrawRendererText(ABOUT_TITLE_text, ABOUT_TITLE_x, 0);
+                TTF_DrawRendererText(BACK_text, BACK_rect.x, BACK_rect.y);
+                SDL_RenderTexture(renderer, CREDITS_text_texture, nullptr, &CREDITS_rect);
+                if (SDL_PointInRectFloat(&mouse, &BACK_rect))
+                    SDL_SetCursor(pointing_cursor);
+                if (SDL_PollEvent(&event)) {
+                    switch (event.type) {
+                        case SDL_EVENT_QUIT: quit = true;
+                            break;
+                        case SDL_EVENT_MOUSE_BUTTON_UP:
+                            if (SDL_PointInRectFloat(&mouse, &BACK_rect)) {
+                                scene = ACHI_MENU;
+                            }
+                            break;
+                        default: ;
+                    }
+                }
                 break;
         }
         SDL_RenderPresent(renderer);
