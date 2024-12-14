@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.30)
 project(Achi C)
 set(SDL_TEST OFF)
-
+set(SDL_STATIC ON)
+set(BUILD_SHARED_LIBS OFF)
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 add_subdirectory(vendor)

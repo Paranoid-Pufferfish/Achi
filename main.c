@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL3/SDL.h>
+#ifdef _WIN32
+#include <time.h>
+#endif
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include "game_board.h"
@@ -50,6 +53,9 @@ const int adjacencyMatrix2[9][3] = {
 const int adjacent_to_center[8] = {0, 1, 2, 3, 5, 6, 7, 8};
 
 int main(void) {
+#ifdef _WIN32
+    srand(time(0));
+#endif
     SDL_Window *window;
     SDL_Renderer *renderer;
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
@@ -662,9 +668,17 @@ int main(void) {
                                     placement = place.best_move;
                                     temp_board = next_board(game_board, placement, round++);
                                     break;
-                                case SOME_RAND: if (arc4random_uniform(10) == 2) {
+                                case SOME_RAND:
+#ifdef _WIN32
+                                    if (rand() % 11 == 2) {
+                                        do {
+                                            placement = (int) rand() % 10;
+#else
+                                    if (arc4random_uniform(10) == 2) {
                                         do {
                                             placement = (int) arc4random_uniform(9);
+#endif
+
                                             temp_board =
                                                     next_board(game_board, placement, round);
                                             SDL_Log("Random Move");
@@ -681,7 +695,11 @@ int main(void) {
                                     }
                                     break;
                                 case ALL_RAND: do {
+#ifdef _WIN32
+                                        placement = (int) rand() % 10;
+#else
                                         placement = (int) arc4random_uniform(9);
+#endif
                                         temp_board =
                                                 next_board(game_board, placement, round);
                                         SDL_Log("Random Move");
@@ -711,25 +729,26 @@ int main(void) {
                 switch (game_mode) {
                     case GAME_MODE_PVP:
                         if (is_winning(game_board) != 0)
-                            sprintf(buf, "N°%d Player %d Wins - Play Again ?", round,is_winning(game_board) == -1 ? 2 : 1);
+                            sprintf(buf, "N°%d Player %d Wins - Play Again ?", round,
+                                    is_winning(game_board) == -1 ? 2 : 1);
                         else
-                            sprintf(buf, "N°%d Tie - Play Again ?",round);
+                            sprintf(buf, "N°%d Tie - Play Again ?", round);
                         break;
                     case GAME_MODE_PVA:
                         if (is_winning(game_board) == 1 && ai_first)
-                            sprintf(buf, "N°%d AI Wins - Play Again ?",round);
+                            sprintf(buf, "N°%d AI Wins - Play Again ?", round);
                         else if (is_winning(game_board) == -1 && !ai_first)
-                            sprintf(buf, "N°%d Player Wins - Play Again ?",round);
+                            sprintf(buf, "N°%d Player Wins - Play Again ?", round);
                         else
-                            sprintf(buf, "N°%d Tie - Play Again ?",round);
+                            sprintf(buf, "N°%d Tie - Play Again ?", round);
                         break;
                     case GAME_MODE_AVA:
                         if (is_winning(game_board) == 1)
-                            sprintf(buf, "N°%d AI 1 Wins - Play Again ?",round);
+                            sprintf(buf, "N°%d AI 1 Wins - Play Again ?", round);
                         else if (is_winning(game_board) == -1)
-                            sprintf(buf, "N°%d AI 2 Wins - Play Again ?",round);
+                            sprintf(buf, "N°%d AI 2 Wins - Play Again ?", round);
                         else
-                            sprintf(buf, "N°%d Tie - Play Again ?",round);
+                            sprintf(buf, "N°%d Tie - Play Again ?", round);
                     default: ;
                 }
                 ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
