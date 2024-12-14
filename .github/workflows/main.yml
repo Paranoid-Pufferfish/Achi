@@ -14,5 +14,5 @@ jobs:
           
       - name: 'Configure and build your project'
         run: |
-          cmake -S . -B build
+          cmake -G"Ninja" -S . -B build
           cmake --build build --verbose
