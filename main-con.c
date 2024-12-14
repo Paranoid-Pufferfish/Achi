@@ -1,8 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
-#include <SDL3_ttf/SDL_ttf.h>
 #include "game_board.h"
 #include "decision_tree.h"
 #include "game_interface.h"
