@@ -711,25 +711,25 @@ int main(void) {
                 switch (game_mode) {
                     case GAME_MODE_PVP:
                         if (is_winning(game_board) != 0)
-                            sprintf(buf, "Player %d Wins - Play Again ?", is_winning(game_board) == -1 ? 2 : 1);
+                            sprintf(buf, "N°%d Player %d Wins - Play Again ?", round,is_winning(game_board) == -1 ? 2 : 1);
                         else
-                            sprintf(buf, "Tie - Play Again ?");
+                            sprintf(buf, "N°%d Tie - Play Again ?",round);
                         break;
                     case GAME_MODE_PVA:
                         if (is_winning(game_board) == 1 && ai_first)
-                            sprintf(buf, "AI Wins - Play Again ?");
+                            sprintf(buf, "N°%d AI Wins - Play Again ?",round);
                         else if (is_winning(game_board) == -1 && !ai_first)
-                            sprintf(buf, "Player Wins - Play Again ?");
+                            sprintf(buf, "N°%d Player Wins - Play Again ?",round);
                         else
-                            sprintf(buf, "Tie - Play Again ?");
+                            sprintf(buf, "N°%d Tie - Play Again ?",round);
                         break;
                     case GAME_MODE_AVA:
                         if (is_winning(game_board) == 1)
-                            sprintf(buf, "AI 1 Wins - Play Again ?");
+                            sprintf(buf, "N°%d AI 1 Wins - Play Again ?",round);
                         else if (is_winning(game_board) == -1)
-                            sprintf(buf, "AI 2 Wins - Play Again ?");
+                            sprintf(buf, "N°%d AI 2 Wins - Play Again ?",round);
                         else
-                            sprintf(buf, "Tie - Play Again ?");
+                            sprintf(buf, "N°%d Tie - Play Again ?",round);
                     default: ;
                 }
                 ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
