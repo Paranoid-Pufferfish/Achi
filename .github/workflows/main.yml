@@ -1,36 +1,33 @@
-name: Build
+name: Build C project on Windows with CMake and Ninja
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  Build:
-    name: ${{ matrix.platform.name }}
-    runs-on: ${{ matrix.platform.os }}
-    strategy:
-      matrix:
-        platform:
-        - { name: Linux,   os: ubuntu-latest }
-        - { name: Windows, os: windows-latest }
-        - { name: MacOS,   os: macos-latest }
+  build:
+    runs-on: windows-latest
+
     steps:
-    - name: Get DirkSimple sources
-      uses: actions/checkout@v4
-    - name: Set up MSVC toolchain
-      uses: ilammy/msvc-dev-cmd@v1
-      if: ${{ matrix.platform.name == 'Windows' }}
-      with:
-        arch: x64
-    - name: Set up ninja
-      uses: ./.github/actions/setup-ninja
-    - name: Set up SDL
-      id: sdl
-      uses: libsdl-org/setup-sdl@v1
-      with:
-        version: sdl3-latest
-        version-sdl-image: sdl3-latest
-        version-sdl-ttf: sdl3-latest
-        cmake-generator: Ninja
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v1
+
+    - name: Set up Ninja
+      uses: ashley-taylor/setup-ninja@v1
+
+    - name: Install SDL3, SDL3-ttf, and SDL3-image
+      run: |
+        choco install sdl3 sdl3-ttf sdl3-image
+
     - name: Configure CMake
-      run: cmake -B build -GNinja ${{ matrix.platform.flags }}
-    - name: Build
-      run: cmake --build build/
+      run: cmake -G "Ninja" -S . -B build
+
+    - name: Build with Ninja
+      run: cmake --build build
