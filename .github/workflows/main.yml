@@ -1,18 +1,36 @@
-name: "sdl"
-on: [push]
+name: Build
+
+on: [push, pull_request]
 
 jobs:
-  build:
-    runs-on: windows-latest
+  Build:
+    name: ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      matrix:
+        platform:
+        - { name: Linux,   os: ubuntu-latest }
+        - { name: Windows, os: windows-latest }
+        - { name: MacOS,   os: macos-latest }
     steps:
-      - uses: libsdl-org/setup-sdl@main
-        id: sdl
-        with:
-          version: 3-head
-          version-sdl-image: 3-head
-          version-sdl-ttf: 3-head
-          
-      - name: 'Configure and build your project'
-        run: |
-          cmake -G"Ninja" -S . -B build
-          cmake --build build --verbose
+    - name: Get DirkSimple sources
+      uses: actions/checkout@v4
+    - name: Set up MSVC toolchain
+      uses: ilammy/msvc-dev-cmd@v1
+      if: ${{ matrix.platform.name == 'Windows' }}
+      with:
+        arch: x64
+    - name: Set up ninja
+      uses: ./.github/actions/setup-ninja
+    - name: Set up SDL
+      id: sdl
+      uses: libsdl-org/setup-sdl@v1
+      with:
+        version: sdl3-latest
+        version-sdl-image: sdl3-latest
+        version-sdl-ttf: sdl3-latest
+        cmake-generator: Ninja
+    - name: Configure CMake
+      run: cmake -B build -GNinja ${{ matrix.platform.flags }}
+    - name: Build
+      run: cmake --build build/
