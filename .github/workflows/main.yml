@@ -20,7 +20,7 @@ jobs:
       uses: jwlawson/actions-setup-cmake@v1
 
     - name: Set up Ninja
-      uses: ashley-taylor/setup-ninja@v1
+      uses: seanmiddleditch/gha-setup-ninja@v1
 
     - name: Install SDL3, SDL3-ttf, and SDL3-image
       run: |
