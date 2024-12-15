@@ -445,6 +445,7 @@ int main(void) {
                 break;
 
             case ACHI_GAME_START:
+                //TODO:phase naming
                 if (round <= max_rounds) {
                     int turn = (round % 2 != 0) ? 1 : 2;
                     TTF_GetTextSize(TITLE_text, &text_w, &text_h);
