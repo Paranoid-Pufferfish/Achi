@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL3/SDL.h>
-#ifdef _WIN32
+#ifdef SDL_PLATFORM_WINDOWS
 #include <time.h>
 #endif
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <sys/param.h>
 
 #include "game_board.h"
 #include "decision_tree.h"
@@ -56,7 +55,7 @@ const int adjacencyMatrix2[9][3] = {
 const int adjacent_to_center[8] = {0, 1, 2, 3, 5, 6, 7, 8};
 
 int main(void) {
-#ifdef _WIN32
+#ifdef SDL_PLATFORM_WINDOWS
     srand(time(0));
 #endif
     SDL_Window *window;
@@ -69,18 +68,20 @@ int main(void) {
                                      &renderer)) {
         SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
         return 1;
-    }
+                                     }
+
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     bool skip_cycle = false;
     int max_rounds = 0;
     int round = 1;
     int selected = -1;
+    int state = 0;
     GAME_MODE game_mode = NONE;
     RANDOMNESS randomness = NO_RAND;
     bool ai_first = true;
     bool order_selected = false;
-    SDL_SetWindowIcon(window,IMG_Load("../media/miku.png"));
+    SDL_SetWindowIcon(window, IMG_Load("../media/miku.png"));
     TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_underlined = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_credits = TTF_OpenFont("../media/Acme 9 Regular.ttf", 23);
@@ -95,6 +96,7 @@ int main(void) {
         (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2 + 70, BOARD_DIMS, BOARD_DIMS
     };
     board game_board = nullptr;
+    board board_cleaner = nullptr;
     SDL_FPoint hot_points[9];
     hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
     hot_points[1] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y};
@@ -109,6 +111,7 @@ int main(void) {
     hot_points[8] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y + (float) BOARD_DIMS};
     SDL_Texture *unoccupied_square = IMG_LoadTexture(renderer, "../media/unoccupied_piece.svg");
     SDL_FRect squares[9];
+
     if (unoccupied_square == nullptr) {
         SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
@@ -456,9 +459,12 @@ int main(void) {
                         TTF_DestroyText(ROUND_text);
                     if (game_board == nullptr) {
                         game_board = create_board();
+                        board_cleaner = game_board;
                     }
-                    if (is_winning(game_board) || round > max_rounds)
+                    if (is_winning(game_board) || round > max_rounds) {
+                        state = is_winning(game_board);
                         scene = ACHI_END;
+                    }
 
                     switch (game_mode) {
                         case GAME_MODE_PVA:
@@ -553,6 +559,8 @@ int main(void) {
                                             if (game_board[i].occupied_by == 0 &&
                                                 SDL_PointInRectFloat(&mouse, &squares[i])) {
                                                 game_board = next_board(game_board, i, round++);
+                                                free(board_cleaner);
+                                                board_cleaner = game_board;
                                             }
                                         }
                                     } else {
@@ -586,6 +594,8 @@ int main(void) {
                                                         selected = -1;
                                                         game_board =
                                                                 next_board(game_board, selected_index * 3 + j, round++);
+                                                        free(board_cleaner);
+                                                        board_cleaner = game_board;
                                                     }
                                                 }
                                             }
@@ -599,6 +609,8 @@ int main(void) {
                                                 if (game_board[i].occupied_by == 0 &&
                                                     SDL_PointInRectFloat(&mouse, &squares[i])) {
                                                     game_board = next_board(game_board, i, round++);
+                                                    free(board_cleaner);
+                                                    board_cleaner = game_board;
                                                 }
                                             }
                                         } else {
@@ -635,6 +647,8 @@ int main(void) {
                                                             game_board =
                                                                     next_board(game_board, selected_index * 3 + j,
                                                                                round++);
+                                                            free(board_cleaner);
+                                                            board_cleaner = game_board;
                                                         }
                                                     }
                                                 }
@@ -672,6 +686,8 @@ int main(void) {
                                                      SDL_min(max_rounds + 1, (10+(round / 10) * 10) +1));
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
+                                free(board_cleaner);
+                                board_cleaner = game_board;
                             }
                             skip_cycle = false;
                         } else {
@@ -694,7 +710,7 @@ int main(void) {
                                     temp_board = next_board(game_board, placement, round++);
                                     break;
                                 case SOME_RAND:
-#ifdef _WIN32
+#ifdef _SDL_PLATFORM_WINDOWS
                                     if (rand() % 11 == 2) {
                                         do {
                                             placement = (int) rand() % 10;
@@ -722,7 +738,7 @@ int main(void) {
                                     }
                                     break;
                                 case ALL_RAND: do {
-#ifdef _WIN32
+#ifdef SDL_PLATFORM_WINDOWS
                                         placement = (int) rand() % 10;
 #else
                                         placement = (int) arc4random_uniform(9);
@@ -738,6 +754,8 @@ int main(void) {
 
                             SDL_Log("Placement : %d", placement);
                             game_board = temp_board;
+                                        free(board_cleaner);
+                                        board_cleaner = game_board;
                             skip_cycle = false;
                         } else {
                             skip_cycle = true;
@@ -755,24 +773,33 @@ int main(void) {
                         SDL_SetCursor(pointing_cursor);
                     switch (game_mode) {
                         case GAME_MODE_PVP:
-                            if (is_winning(game_board) != 0)
+                            if (state != 0)
                                 sprintf(buf, "N°%d Player %d Wins - Play Again ?", round,
-                                        is_winning(game_board) == -1 ? 2 : 1);
+                                        state == -1 ? 2 : 1);
                             else
                                 sprintf(buf, "N°%d Tie - Play Again ?", round);
                             break;
                         case GAME_MODE_PVA:
-                            if (is_winning(game_board) == 1 && ai_first)
-                                sprintf(buf, "N°%d AI Wins - Play Again ?", round);
-                            else if (is_winning(game_board) == -1 && !ai_first)
-                                sprintf(buf, "N°%d Player Wins - Play Again ?", round);
-                            else
-                                sprintf(buf, "N°%d Tie - Play Again ?", round);
+                            if (ai_first) {
+                                if (state == 1)
+                                    sprintf(buf, "N°%d AI Wins - Play Again ?", round);
+                                else if (state == -1)
+                                    sprintf(buf, "N°%d Player Wins - Play Again ?", round);
+                                else
+                                    sprintf(buf, "N°%d Tie - Play Again ?", round);
+                            } else {
+                                if (state == -1)
+                                    sprintf(buf, "N°%d AI Wins - Play Again ?", round);
+                                else if (state == 1)
+                                    sprintf(buf, "N°%d Player Wins - Play Again ?", round);
+                                else
+                                    sprintf(buf, "N°%d Tie - Play Again ?", round);
+                            }
                             break;
                         case GAME_MODE_AVA:
-                            if (is_winning(game_board) == 1)
+                            if (state == 1)
                                 sprintf(buf, "N°%d AI 1 Wins - Play Again ?", round);
-                            else if (is_winning(game_board) == -1)
+                            else if (state == -1)
                                 sprintf(buf, "N°%d AI 2 Wins - Play Again ?", round);
                             else
                                 sprintf(buf, "N°%d Tie - Play Again ?", round);
@@ -831,16 +858,24 @@ int main(void) {
                                         buf[0] = '\0';
                                         round = 1;
                                         selected = -1;
-                                        free(game_board);
-                                        game_board = nullptr;
+                                        state = 0;
+                                        if (game_board != nullptr) {
+                                            free(game_board);
+                                            game_board = nullptr;
+                                        }
+                                        board_cleaner = nullptr;
                                         scene = ACHI_GAME_START;
                                     }
                                     if (SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect)) {
                                         buf[0] = '\0';
                                         round = 1;
                                         selected = -1;
-                                        free(game_board);
-                                        game_board = nullptr;
+                                        state = 0;
+                                        if (game_board != nullptr) {
+                                            free(game_board);
+                                            game_board = nullptr;
+                                        }
+                                        board_cleaner = nullptr;
                                         game_mode = NONE;
                                         scene = ACHI_MENU;
                                     }
@@ -872,10 +907,6 @@ int main(void) {
         }
         SDL_RenderPresent(renderer);
     }
-    TTF_CloseFont(font);
-    TTF_CloseFont(font_underlined);
-    TTF_CloseFont(font_credits);
-    TTF_DestroyRendererTextEngine(text_engine);
     TTF_Quit();
     SDL_DestroyCursor(default_cursor);
     SDL_DestroyCursor(pointing_cursor);
