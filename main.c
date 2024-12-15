@@ -737,7 +737,33 @@ int main(void) {
                 }
                 break;
             case ACHI_END:
-
+                if (SDL_PollEvent(&event)) {
+                    switch (event.type) {
+                        case SDL_EVENT_QUIT: quit = true;
+                        break;
+                        case SDL_EVENT_MOUSE_BUTTON_UP:
+                            if (event.button.button == SDL_BUTTON_LEFT) {
+                                if (SDL_PointInRectFloat(&mouse, &RETRY_rect)) {
+                                    buf[0] = '\0';
+                                    round = 1;
+                                    selected = -1;
+                                    free(game_board);
+                                    game_board = nullptr;
+                                    scene = ACHI_GAME_START;
+                                }
+                                if (SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect)) {
+                                    buf[0] = '\0';
+                                    round = 1;
+                                    selected = -1;
+                                    free(game_board);
+                                    game_board = nullptr;
+                                    game_mode = NONE;
+                                    scene = ACHI_MENU;
+                                }
+                            }
+                        default: ;
+                    }
+                }
                 SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                 if (SDL_PointInRectFloat(&mouse, &RETRY_rect) ||
                     SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect))
@@ -804,33 +830,6 @@ int main(void) {
                             SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
                             SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                             break;
-                        default: ;
-                    }
-                }
-                if (SDL_PollEvent(&event)) {
-                    switch (event.type) {
-                        case SDL_EVENT_QUIT: quit = true;
-                            break;
-                        case SDL_EVENT_MOUSE_BUTTON_UP:
-                            if (event.button.button == SDL_BUTTON_LEFT) {
-                                if (SDL_PointInRectFloat(&mouse, &RETRY_rect)) {
-                                    buf[0] = '\0';
-                                    round = 1;
-                                    selected = -1;
-                                    free(game_board);
-                                    game_board = nullptr;
-                                    scene = ACHI_GAME_START;
-                                }
-                                if (SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect)) {
-                                    buf[0] = '\0';
-                                    round = 1;
-                                    selected = -1;
-                                    free(game_board);
-                                    game_board = nullptr;
-                                    game_mode = NONE;
-                                    scene = ACHI_MENU;
-                                }
-                            }
                         default: ;
                     }
                 }
