@@ -6,6 +6,8 @@
 #endif
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <sys/param.h>
+
 #include "game_board.h"
 #include "decision_tree.h"
 #include "game_interface.h"
@@ -78,6 +80,7 @@ int main(void) {
     RANDOMNESS randomness = NO_RAND;
     bool ai_first = true;
     bool order_selected = false;
+    SDL_SetWindowIcon(window,IMG_Load("../media/miku.png"));
     TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_underlined = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_credits = TTF_OpenFont("../media/Acme 9 Regular.ttf", 23);
@@ -445,7 +448,6 @@ int main(void) {
                 break;
 
             case ACHI_GAME_START:
-                //TODO:phase naming
                 if (round <= max_rounds) {
                     int turn = (round % 2 != 0) ? 1 : 2;
                     TTF_GetTextSize(TITLE_text, &text_w, &text_h);
@@ -461,15 +463,18 @@ int main(void) {
                     switch (game_mode) {
                         case GAME_MODE_PVA:
                             if (ai_first)
-                                sprintf(buf, "Round N°%d - %s", round, (turn == 1) ? "AI's turn" : "Players turns");
+                                sprintf(buf, "Round N°%d - %s Phase - %s", round, (round <= 6) ? "Placement" : "Moving",
+                                        (turn == 1) ? "AI's turn" : "Players turns");
                             else
-                                sprintf(buf, "Round N°%d - %s", round, (turn == 2) ? "AI's turn" : "Players turns");
+                                sprintf(buf, "Round N°%d - %s Phase - %s", round, (round <= 6) ? "Placement" : "Moving",
+                                        (turn == 2) ? "AI's turn" : "Players turns");
                             break;
                         case GAME_MODE_PVP:
-                            sprintf(buf, "Round N°%d - Player %d turn", round, turn);
+                            sprintf(buf, "Round N°%d - %s Phase - Player %d turn", round,
+                                    (round <= 6) ? "Placement" : "Moving", turn);
                             break;
                         case GAME_MODE_AVA:
-                            sprintf(buf, "Round N°%d - %s", round,
+                            sprintf(buf, "Round N°%d - %s Phase - %s", round, (round <= 6) ? "Placement" : "Moving",
                                     (round % 2 != 0) ? "Minimizer turn" : "Maximizer turn");
                         default: ;
                     }
@@ -662,7 +667,9 @@ int main(void) {
                                 TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                 SDL_RenderPresent(renderer);
                                 SDL_Delay(200);
-                                pair place = minimax(game_board, ai_first, round, max_rounds + 1);
+                                SDL_Log("From : %d To : %d", round,SDL_min(max_rounds+1, 1+10 + (round / 10) * 10));
+                                pair place = minimax(game_board, ai_first, round,
+                                                     SDL_min(max_rounds + 1, (10+(round / 10) * 10) +1));
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
                             }
@@ -680,7 +687,9 @@ int main(void) {
                                 case NO_RAND: TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                     SDL_RenderPresent(renderer);
                                     SDL_Delay(200);
-                                    place = minimax(game_board, (turn != 1) ? true : false, round, max_rounds + 1);
+                                    SDL_Log("From : %d To : %d", round,SDL_min(max_rounds+1, 1+10 + (round / 10) * 10));
+                                    place = minimax(game_board, (turn != 1) ? true : false, round,
+                                                    SDL_min(max_rounds + 1, (10+(round / 10) * 10) +1));
                                     placement = place.best_move;
                                     temp_board = next_board(game_board, placement, round++);
                                     break;
@@ -704,8 +713,10 @@ int main(void) {
                                         TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                         SDL_RenderPresent(renderer);
                                         SDL_Delay(200);
+                                        SDL_Log("From : %d To : %d", round,
+                                                SDL_min(max_rounds+1, 1+10 + (round / 10) * 10));
                                         place = minimax(game_board, (turn != 1) ? true : false, round,
-                                                        max_rounds + 1);
+                                                        SDL_min(max_rounds + 1, (10+(round / 10) * 10) +1));
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     }
@@ -737,100 +748,105 @@ int main(void) {
                 }
                 break;
             case ACHI_END:
-                if (SDL_PollEvent(&event)) {
-                    switch (event.type) {
-                        case SDL_EVENT_QUIT: quit = true;
-                        break;
-                        case SDL_EVENT_MOUSE_BUTTON_UP:
-                            if (event.button.button == SDL_BUTTON_LEFT) {
-                                if (SDL_PointInRectFloat(&mouse, &RETRY_rect)) {
-                                    buf[0] = '\0';
-                                    round = 1;
-                                    selected = -1;
-                                    free(game_board);
-                                    game_board = nullptr;
-                                    scene = ACHI_GAME_START;
-                                }
-                                if (SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect)) {
-                                    buf[0] = '\0';
-                                    round = 1;
-                                    selected = -1;
-                                    free(game_board);
-                                    game_board = nullptr;
-                                    game_mode = NONE;
-                                    scene = ACHI_MENU;
-                                }
-                            }
+                if (quit != true) {
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                    if (SDL_PointInRectFloat(&mouse, &RETRY_rect) ||
+                        SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect))
+                        SDL_SetCursor(pointing_cursor);
+                    switch (game_mode) {
+                        case GAME_MODE_PVP:
+                            if (is_winning(game_board) != 0)
+                                sprintf(buf, "N°%d Player %d Wins - Play Again ?", round,
+                                        is_winning(game_board) == -1 ? 2 : 1);
+                            else
+                                sprintf(buf, "N°%d Tie - Play Again ?", round);
+                            break;
+                        case GAME_MODE_PVA:
+                            if (is_winning(game_board) == 1 && ai_first)
+                                sprintf(buf, "N°%d AI Wins - Play Again ?", round);
+                            else if (is_winning(game_board) == -1 && !ai_first)
+                                sprintf(buf, "N°%d Player Wins - Play Again ?", round);
+                            else
+                                sprintf(buf, "N°%d Tie - Play Again ?", round);
+                            break;
+                        case GAME_MODE_AVA:
+                            if (is_winning(game_board) == 1)
+                                sprintf(buf, "N°%d AI 1 Wins - Play Again ?", round);
+                            else if (is_winning(game_board) == -1)
+                                sprintf(buf, "N°%d AI 2 Wins - Play Again ?", round);
+                            else
+                                sprintf(buf, "N°%d Tie - Play Again ?", round);
                         default: ;
                     }
-                }
-                SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                if (SDL_PointInRectFloat(&mouse, &RETRY_rect) ||
-                    SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect))
-                    SDL_SetCursor(pointing_cursor);
-                switch (game_mode) {
-                    case GAME_MODE_PVP:
-                        if (is_winning(game_board) != 0)
-                            sprintf(buf, "N°%d Player %d Wins - Play Again ?", round,
-                                    is_winning(game_board) == -1 ? 2 : 1);
-                        else
-                            sprintf(buf, "N°%d Tie - Play Again ?", round);
-                        break;
-                    case GAME_MODE_PVA:
-                        if (is_winning(game_board) == 1 && ai_first)
-                            sprintf(buf, "N°%d AI Wins - Play Again ?", round);
-                        else if (is_winning(game_board) == -1 && !ai_first)
-                            sprintf(buf, "N°%d Player Wins - Play Again ?", round);
-                        else
-                            sprintf(buf, "N°%d Tie - Play Again ?", round);
-                        break;
-                    case GAME_MODE_AVA:
-                        if (is_winning(game_board) == 1)
-                            sprintf(buf, "N°%d AI 1 Wins - Play Again ?", round);
-                        else if (is_winning(game_board) == -1)
-                            sprintf(buf, "N°%d AI 2 Wins - Play Again ?", round);
-                        else
-                            sprintf(buf, "N°%d Tie - Play Again ?", round);
-                    default: ;
-                }
-                ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
-                TTF_GetTextSize(ROUND_text, &text_w, &text_h);
-                TTF_DrawRendererText(ROUND_text, (float) (SCREEN_WIDTH - text_w) / 2, 75);
-                TTF_DrawRendererText(RETRY_text, RETRY_rect.x, RETRY_rect.y);
-                TTF_DrawRendererText(MAIN_MENU_text, MAIN_MENU_rect.x, MAIN_MENU_rect.y);
-                SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
-                SDL_RenderRect(renderer, &graphical_board);
-                SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
-                SDL_RenderLine(renderer, hot_points[2].x, hot_points[2].y, hot_points[6].x, hot_points[6].y);
-                SDL_RenderLine(renderer, hot_points[3].x, hot_points[3].y, hot_points[5].x, hot_points[5].y);
-                SDL_RenderLine(renderer, hot_points[0].x, hot_points[0].y, hot_points[8].x, hot_points[8].y);
-                SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                for (int i = 0; i < 9; ++i) {
-                    switch (game_board[i].occupied_by) {
-                        case -1:
-                            squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
-                            squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
-                            squares[i].w = squares[i].h = PLAYER_SIZE;
-                            squares[i].w = squares[i].h = PLAYER_SIZE;
-                            SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
-                            SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
-                            break;
-                        case 0:
-                            squares[i].x = hot_points[i].x - (float) EMPTY_SIZE / 2;
-                            squares[i].y = hot_points[i].y - (float) EMPTY_SIZE / 2;
-                            squares[i].w = squares[i].h = EMPTY_SIZE;
-                            SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0xff, 0xFF);
-                            SDL_RenderTexture(renderer, unoccupied_square, nullptr, &squares[i]);
-                            break;
-                        case 1:
-                            squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
-                            squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
-                            squares[i].w = squares[i].h = PLAYER_SIZE;
-                            squares[i].w = squares[i].h = PLAYER_SIZE;
-                            SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
-                            SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
-                            break;
-                        default: ;
+
+                    ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
+                    TTF_GetTextSize(ROUND_text, &text_w, &text_h);
+                    TTF_DrawRendererText(ROUND_text, (float) (SCREEN_WIDTH - text_w) / 2, 75);
+                    TTF_DrawRendererText(RETRY_text, RETRY_rect.x, RETRY_rect.y);
+                    TTF_DrawRendererText(MAIN_MENU_text, MAIN_MENU_rect.x, MAIN_MENU_rect.y);
+                    SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_RenderRect(renderer, &graphical_board);
+                    SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
+                    SDL_RenderLine(renderer, hot_points[2].x, hot_points[2].y, hot_points[6].x, hot_points[6].y);
+                    SDL_RenderLine(renderer, hot_points[3].x, hot_points[3].y, hot_points[5].x, hot_points[5].y);
+                    SDL_RenderLine(renderer, hot_points[0].x, hot_points[0].y, hot_points[8].x, hot_points[8].y);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                    for (int i = 0; i < 9; ++i) {
+                        switch (game_board[i].occupied_by) {
+                            case -1:
+                                squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
+                                squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
+                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
+                                SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
+                                break;
+                            case 0:
+                                squares[i].x = hot_points[i].x - (float) EMPTY_SIZE / 2;
+                                squares[i].y = hot_points[i].y - (float) EMPTY_SIZE / 2;
+                                squares[i].w = squares[i].h = EMPTY_SIZE;
+                                SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0xff, 0xFF);
+                                SDL_RenderTexture(renderer, unoccupied_square, nullptr, &squares[i]);
+                                break;
+                            case 1:
+                                squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
+                                squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
+                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
+                                SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
+                                break;
+                            default: ;
+                        }
+                    }
+
+                    if (SDL_PollEvent(&event)) {
+                        switch (event.type) {
+                            case SDL_EVENT_QUIT: SDL_Log("Quitting");
+                                quit = true;
+                                break;
+                            case SDL_EVENT_MOUSE_BUTTON_UP:
+                                if (event.button.button == SDL_BUTTON_LEFT) {
+                                    if (SDL_PointInRectFloat(&mouse, &RETRY_rect)) {
+                                        buf[0] = '\0';
+                                        round = 1;
+                                        selected = -1;
+                                        free(game_board);
+                                        game_board = nullptr;
+                                        scene = ACHI_GAME_START;
+                                    }
+                                    if (SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect)) {
+                                        buf[0] = '\0';
+                                        round = 1;
+                                        selected = -1;
+                                        free(game_board);
+                                        game_board = nullptr;
+                                        game_mode = NONE;
+                                        scene = ACHI_MENU;
+                                    }
+                                }
+                            default: ;
+                        }
                     }
                 }
                 break;
@@ -856,9 +872,10 @@ int main(void) {
         }
         SDL_RenderPresent(renderer);
     }
-    TTF_DestroyRendererTextEngine(text_engine);
     TTF_CloseFont(font);
     TTF_CloseFont(font_underlined);
+    TTF_CloseFont(font_credits);
+    TTF_DestroyRendererTextEngine(text_engine);
     TTF_Quit();
     SDL_DestroyCursor(default_cursor);
     SDL_DestroyCursor(pointing_cursor);
