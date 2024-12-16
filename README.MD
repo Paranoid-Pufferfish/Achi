@@ -1,4 +1,4 @@
-# Achi game in C raylib
+# Achi game in C SDL3
 
 NOTE :
 
@@ -10,10 +10,11 @@ ends before that
 
 Treat it as a cheatcode, as a debug move, backdoor, anything you want it to be!
 
-## How to run :
+## How to run
 
-Idk just google how to compile a `meson` project lol!
-# Authors :
+Idk just google how to compile a `cmake` project lol!
+
+## Authors
 
 - [AIT MEDDOUR Fouâd-Eddine (G1)](https://github.com/Paranoid-Pufferfish)
-- [MOUHOUS Mathya (G3)](https://github.com/MathyazSnoozin) 
+- [MOUHOUS Mathya (G3)](https://github.com/MathyazSnoozin)
