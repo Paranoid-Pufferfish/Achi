@@ -628,6 +628,9 @@ int main(void) {
                                             if (game_board[i].occupied_by == 0 &&
                                                 SDL_PointInRectFloat(&mouse, &squares[i])) {
                                                 game_board = next_board(game_board, i, round++);
+                                                free(board_cleaner);
+                                                board_cleaner = game_board;
+                                                break;
                                             }
                                         }
                                     } else {
@@ -663,6 +666,7 @@ int main(void) {
                                                                 next_board(game_board, selected_index * 3 + j, round++);
                                                         free(board_cleaner);
                                                         board_cleaner = game_board;
+                                                        break;
                                                     }
                                                 }
                                             }
@@ -678,6 +682,7 @@ int main(void) {
                                                     game_board = next_board(game_board, i, round++);
                                                     free(board_cleaner);
                                                     board_cleaner = game_board;
+                                                    break;
                                                 }
                                             }
                                         } else {
@@ -711,11 +716,13 @@ int main(void) {
                                                                                        [j]];
                                                         if (SDL_PointInRectFloat(&mouse, &squares[current_adjacent])) {
                                                             selected = -1;
-                                                            game_board =
-                                                                    next_board(game_board, selected_index * 3 + j,
-                                                                               round++);
-                                                            free(board_cleaner);
-                                                            board_cleaner = game_board;
+                                                            SDL_Log("Player : %d, %d %p",round,selected_index * 3 + j, game_board);
+                                                                game_board =
+                                                                        next_board(game_board, selected_index * 3 + j,
+                                                                                   round++);
+                                                                free(board_cleaner);
+                                                                board_cleaner = game_board;
+                                                            break;
                                                         }
                                                     }
                                                 }
