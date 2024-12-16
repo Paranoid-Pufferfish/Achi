@@ -11,6 +11,7 @@
 #include "decision_tree.h"
 #include "game_interface.h"
 
+#define DLS_LIMIT 8
 #define SCREEN_WIDTH 1366
 #define SCREEN_HEIGHT 768
 #define BOARD_DIMS (SCREEN_HEIGHT-300)
@@ -96,6 +97,7 @@ int main(void) {
         (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2 + 70, BOARD_DIMS, BOARD_DIMS
     };
     board game_board = nullptr;
+    board board_cleaner = nullptr;
     SDL_FPoint hot_points[9];
     hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
     hot_points[1] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y};
@@ -459,6 +461,7 @@ int main(void) {
                         TTF_DestroyText(ROUND_text);
                     if (game_board == nullptr) {
                         game_board = create_board();
+                        board_cleaner = game_board;
                     }
                     if (is_winning(game_board) || round > max_rounds) {
                         state = is_winning(game_board);
@@ -591,6 +594,8 @@ int main(void) {
                                                         selected = -1;
                                                         game_board =
                                                                 next_board(game_board, selected_index * 3 + j, round++);
+                                                        free(board_cleaner);
+                                                        board_cleaner = game_board;
                                                     }
                                                 }
                                             }
@@ -604,6 +609,8 @@ int main(void) {
                                                 if (game_board[i].occupied_by == 0 &&
                                                     SDL_PointInRectFloat(&mouse, &squares[i])) {
                                                     game_board = next_board(game_board, i, round++);
+                                                    free(board_cleaner);
+                                                    board_cleaner = game_board;
                                                 }
                                             }
                                         } else {
@@ -640,6 +647,8 @@ int main(void) {
                                                             game_board =
                                                                     next_board(game_board, selected_index * 3 + j,
                                                                                round++);
+                                                            free(board_cleaner);
+                                                            board_cleaner = game_board;
                                                         }
                                                     }
                                                 }
@@ -673,9 +682,11 @@ int main(void) {
                                 SDL_RenderPresent(renderer);
                                 SDL_Delay(200);
                                 pair place = minimax(game_board, ai_first, round,
-                                                     SDL_min(max_rounds + 1, (8+(round / 8) * 8) +1));
+                                                     SDL_min(max_rounds + 1, (DLS_LIMIT +(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
+                                free(board_cleaner);
+                                board_cleaner = game_board;
                             }
                             skip_cycle = false;
                         } else {
@@ -694,17 +705,17 @@ int main(void) {
                                         SDL_RenderPresent(renderer);
                                         SDL_Delay(200);
                                         place = minimax(game_board, true, round,
-                                                        SDL_min(max_rounds + 1, (8+(round / 8) * 8) +1));
+                                                        SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     } else {
-                                            TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
-                                            SDL_RenderPresent(renderer);
-                                            SDL_Delay(200);
-                                            place = minimax(game_board, false, round,
-                                                            SDL_min(max_rounds + 1, (8+(round / 8) * 8) +1));
-                                            placement = place.best_move;
-                                            temp_board = next_board(game_board, placement, round++);
+                                        TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
+                                        SDL_RenderPresent(renderer);
+                                        SDL_Delay(200);
+                                        place = minimax(game_board, false, round,
+                                                        SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                        placement = place.best_move;
+                                        temp_board = next_board(game_board, placement, round++);
                                     }
                                     break;
                                 case SOME_RAND:
@@ -729,7 +740,7 @@ int main(void) {
                                             SDL_RenderPresent(renderer);
                                             SDL_Delay(200);
                                             place = minimax(game_board, true, round,
-                                                            SDL_min(max_rounds + 1, (8+(round / 8) * 8) +1));
+                                                            SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         } else {
@@ -737,7 +748,7 @@ int main(void) {
                                             SDL_RenderPresent(renderer);
                                             SDL_Delay(200);
                                             place = minimax(game_board, false, round,
-                                                            SDL_min(max_rounds + 1, (8+(round / 8) * 8) +1));
+                                                            SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         }
@@ -760,6 +771,8 @@ int main(void) {
 
                             SDL_Log("%d Placement : %d", turn, placement);
                             game_board = temp_board;
+                            free(board_cleaner);
+                            board_cleaner = game_board;
                             skip_cycle = false;
                         } else {
                             skip_cycle = true;
@@ -865,7 +878,8 @@ int main(void) {
                                         state = 0;
                                         if (game_board != nullptr) {
                                             free(game_board);
-                                            game_board = nullptr;
+                                            game_board= board_cleaner = nullptr;
+
                                         }
 
                                         scene = ACHI_GAME_START;
@@ -877,7 +891,7 @@ int main(void) {
                                         state = 0;
                                         if (game_board != nullptr) {
                                             free(game_board);
-                                            game_board = nullptr;
+                                            game_board= board_cleaner = nullptr;
                                         }
 
                                         game_mode = NONE;
@@ -911,6 +925,7 @@ int main(void) {
         }
         SDL_RenderPresent(renderer);
     }
+    free(game_board);
     TTF_CloseFont(font);
     TTF_CloseFont(font_credits);
     TTF_CloseFont(font_underlined);

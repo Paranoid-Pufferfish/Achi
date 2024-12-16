@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 project(Achi C)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined -g -O1")
 set(SDL_TEST OFF)
 set(SDL_STATIC ON)
 set(BUILD_SHARED_LIBS OFF)

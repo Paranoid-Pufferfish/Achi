@@ -19,22 +19,17 @@ int ai_play(board game_board, int round, int minimizing, int max_rounds) {
 }
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
-    pair pair;
+    pair Pair;
     int win_status = is_winning(game_board);
-    if (win_status == 1) {
-        pair.eval = 1;
-        pair.best_move = -1;
-        return pair;
-    }
-    if (win_status == -1) {
-        pair.eval = -1;
-        pair.best_move = -1;
-        return pair;
-    }
+
     if (n >= max_depth) {
-        pair.eval = 0;
-        pair.best_move = -1;
-        return pair;
+        Pair.eval = 0;
+        Pair.best_move = -1;
+        return Pair;
+    }
+    if (win_status != 0) {
+        Pair = (win_status == 1) ? (struct pair){1, -1} : (struct pair){-1, -1};
+        return Pair;
     }
     if (maximizing) {
         int max_eval = (int) -INFINITY;
@@ -52,9 +47,9 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
             }
         }
 
-        pair.eval = max_eval;
-        pair.best_move = best_move;
-        return pair;
+        Pair.eval = max_eval;
+        Pair.best_move = best_move;
+        return Pair;
     } else {
         int min_eval = (int) INFINITY;
         int best_move = -1;
@@ -69,8 +64,8 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
                 free(next_playing_board);
             }
         }
-        pair.eval = min_eval;
-        pair.best_move = best_move;
-        return pair;
+        Pair.eval = min_eval;
+        Pair.best_move = best_move;
+        return Pair;
     }
 }
