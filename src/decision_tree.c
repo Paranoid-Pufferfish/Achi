@@ -20,12 +20,13 @@ int ai_play(board game_board, int round, int minimizing, int max_rounds) {
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
     pair pair;
-    if (is_winning(game_board) == 1) {
+    int win_status = is_winning(game_board);
+    if (win_status == 1) {
         pair.eval = 1;
         pair.best_move = -1;
         return pair;
     }
-    if (is_winning(game_board) == -1) {
+    if (win_status == -1) {
         pair.eval = -1;
         pair.best_move = -1;
         return pair;
@@ -60,7 +61,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         for (int i = 0; i < 9; ++i) {
             board next_playing_board = next_board(game_board, i, n);
             if (next_playing_board != nullptr) {
-                int eval = minimax(next_playing_board, true, n + 1, max_depth).eval;
+                int eval = minimax(next_playing_board, true, n+1, max_depth).eval;
                 if (eval < min_eval) {
                     min_eval = eval;
                     best_move = i;
