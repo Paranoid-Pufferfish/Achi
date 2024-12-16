@@ -716,7 +716,6 @@ int main(void) {
                                                                                        [j]];
                                                         if (SDL_PointInRectFloat(&mouse, &squares[current_adjacent])) {
                                                             selected = -1;
-                                                            SDL_Log("Player : %d, %d %p",round,selected_index * 3 + j, game_board);
                                                                 game_board =
                                                                         next_board(game_board, selected_index * 3 + j,
                                                                                    round++);
