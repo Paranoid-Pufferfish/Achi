@@ -22,7 +22,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
     pair Pair;
     int win_status = is_winning(game_board);
 
-    if (n >= max_depth) {
+    if (n > max_depth) {
         Pair.eval = 0;
         Pair.best_move = -1;
         return Pair;
