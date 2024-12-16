@@ -79,9 +79,11 @@ int main(void) {
     int selected = -1;
     int state = 0;
     GAME_MODE game_mode = NONE;
-    RANDOMNESS randomness = NO_RAND;
+    RANDOMNESS randomness_first_ai = NO_RAND;
+    RANDOMNESS randomness_second_ai = NO_RAND;
     bool ai_first = true;
     bool order_selected = false;
+    bool second_ai_rand_selected = false;
     SDL_SetWindowIcon(window, IMG_Load("../media/miku.png"));
     TTF_Font *font = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
     TTF_Font *font_underlined = TTF_OpenFont("../media/Acme 9 Regular.ttf", 30);
@@ -92,6 +94,8 @@ int main(void) {
     SDL_Cursor *pointing_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
     SDL_Cursor *default_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
     char buf[1024] = {0};
+    char ai_desc[100] = {0};
+    char ai2_desc[100] = {0};
     SDL_Event event;
     SDL_FRect graphical_board = {
         (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2 + 70, BOARD_DIMS, BOARD_DIMS
@@ -144,9 +148,14 @@ int main(void) {
     TTF_Text *AIFirst_text = TTF_CreateText(text_engine, font, "Minimax", 0);
     TTF_Text *AI_IS_THINKING_text = TTF_CreateText(text_engine, font, "AI is thinking...", 0);
     TTF_Text *PlayerFirst_text = TTF_CreateText(text_engine, font, "Player", 0);
+    TTF_Text *AI_ONE_text = TTF_CreateText(text_engine, font_underlined, "AI N°1 Mode: ", 0);
+    TTF_Text *AI_TWO_text = TTF_CreateText(text_engine, font_underlined, "AI N°2 Mode: ", 0);
     TTF_Text *NO_RANDOMNESS_text = TTF_CreateText(text_engine, font, "No Randomness", 0);
     TTF_Text *SOME_RANDOMNESS_text = TTF_CreateText(text_engine, font, "Some Randomness", 0);
     TTF_Text *ALL_RANDOMNESS_text = TTF_CreateText(text_engine, font, "All Randomness", 0);
+    TTF_Text *NO_RANDOMNESS2_text = TTF_CreateText(text_engine, font, "No Randomness", 0);
+    TTF_Text *SOME_RANDOMNESS2_text = TTF_CreateText(text_engine, font, "Some Randomness", 0);
+    TTF_Text *ALL_RANDOMNESS2_text = TTF_CreateText(text_engine, font, "All Randomness", 0);
     TTF_Text *RETRY_text = TTF_CreateText(text_engine, font_underlined, "Play Again", 0);
     TTF_Text *MAIN_MENU_text = TTF_CreateText(text_engine, font_underlined, "Main Menu", 0);
     TTF_Text *ABOUT_TITLE_text = TTF_CreateText(text_engine, font, "About the project", 0);
@@ -168,8 +177,6 @@ int main(void) {
     float ORDER_x = (float) (SCREEN_WIDTH - text_w) / 2;
     TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
     float ABOUT_TITLE_x = (float) (SCREEN_WIDTH - text_w) / 2;
-    TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
-    float ENTROPY_x = (float) (SCREEN_WIDTH - text_w) / 2;
     TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
     float ROUNDS_x = (float) (SCREEN_WIDTH - text_w) / 2;
     TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -208,12 +215,33 @@ int main(void) {
     TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
     SDL_FRect PlayerFirst_rect = {3 * (float) (SCREEN_WIDTH - text_w) / 4, 400, (float) text_w, (float) text_h};
 
+    TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+    SDL_FRect ENTROPY_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 100, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+    SDL_FRect AI_ONE_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 200, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+    SDL_FRect AI_TWO_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 400, (float) text_w, (float) text_h};
+
     TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
-    SDL_FRect NO_RANDOMNESS_rect = {0, 400, (float) text_w, (float) text_h};
+    SDL_FRect NO_RANDOMNESS_rect = {0, 300, (float) text_w, (float) text_h};
+
     TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
-    SDL_FRect SOME_RANDOMNESS_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 400, (float) text_w, (float) text_h};
+    SDL_FRect SOME_RANDOMNESS_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 300, (float) text_w, (float) text_h};
+
     TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
-    SDL_FRect ALL_RANDOMNESS_rect = {(float) (SCREEN_WIDTH - text_w), 400, (float) text_w, (float) text_h};
+    SDL_FRect ALL_RANDOMNESS_rect = {(float) (SCREEN_WIDTH - text_w), 300, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+    SDL_FRect NO_RANDOMNESS2_rect = {0, 500, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+    SDL_FRect SOME_RANDOMNESS2_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 500, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+    SDL_FRect ALL_RANDOMNESS2_rect = {(float) (SCREEN_WIDTH - text_w), 500, (float) text_w, (float) text_h};
+
     TTF_GetTextSize(NEXT_text, &text_w, &text_h);
     TTF_DrawRendererText(NEXT_text, SCREEN_WIDTH - text_w, SCREEN_HEIGHT - text_h);
     SDL_FRect NEXT_rect = {SCREEN_WIDTH - text_w, SCREEN_HEIGHT - text_h, (float) text_w, (float) text_h};
@@ -398,10 +426,15 @@ int main(void) {
             case ACHI_PREGAME_AVA: TTF_GetTextSize(TITLE_text, &text_w, &text_h);
                 TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
                 TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
-                TTF_DrawRendererText(ENTROPY_text, ENTROPY_x, 200);
+                TTF_DrawRendererText(ENTROPY_text, ENTROPY_rect.x, ENTROPY_rect.y);
+                TTF_DrawRendererText(AI_ONE_text, AI_ONE_rect.x, AI_ONE_rect.y);
+                TTF_DrawRendererText(AI_TWO_text, AI_TWO_rect.x, AI_TWO_rect.y);
                 TTF_DrawRendererText(NO_RANDOMNESS_text, NO_RANDOMNESS_rect.x, NO_RANDOMNESS_rect.y);
                 TTF_DrawRendererText(SOME_RANDOMNESS_text, SOME_RANDOMNESS_rect.x, SOME_RANDOMNESS_rect.y);
                 TTF_DrawRendererText(ALL_RANDOMNESS_text, ALL_RANDOMNESS_rect.x, ALL_RANDOMNESS_rect.y);
+                TTF_DrawRendererText(NO_RANDOMNESS2_text, NO_RANDOMNESS2_rect.x, NO_RANDOMNESS2_rect.y);
+                TTF_DrawRendererText(SOME_RANDOMNESS2_text, SOME_RANDOMNESS2_rect.x, SOME_RANDOMNESS2_rect.y);
+                TTF_DrawRendererText(ALL_RANDOMNESS2_text, ALL_RANDOMNESS2_rect.x, ALL_RANDOMNESS2_rect.y);
                 if (SDL_PollEvent(&event)) {
                     switch (event.type) {
                         case SDL_EVENT_QUIT: quit = true;
@@ -412,43 +445,77 @@ int main(void) {
                             }
                             if (SDL_PointInRectFloat(&mouse, &NO_RANDOMNESS_rect)) {
                                 order_selected = true;
-                                randomness = NO_RAND;
+                                randomness_first_ai = NO_RAND;
                                 TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                strcpy(ai_desc,"Minimax");
                             }
                             if (SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS_rect)) {
                                 order_selected = true;
-                                randomness = SOME_RAND;
+                                randomness_first_ai = SOME_RAND;
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                strcpy(ai_desc,"Half-Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS_rect)) {
                                 order_selected = true;
-                                randomness = ALL_RAND;
+                                randomness_first_ai = ALL_RAND;
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                strcpy(ai_desc,"Random");
                             }
-                            if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected)
+                            if (SDL_PointInRectFloat(&mouse, &NO_RANDOMNESS2_rect)) {
+                                second_ai_rand_selected = true;
+                                randomness_second_ai = NO_RAND;
+                                TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                strcpy(ai2_desc,"Minimax");
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS2_rect)) {
+                                second_ai_rand_selected = true;
+                                randomness_second_ai = SOME_RAND;
+                                TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                strcpy(ai2_desc,"Half-Random");
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS2_rect)) {
+                                second_ai_rand_selected = true;
+                                randomness_second_ai = ALL_RAND;
+                                TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                strcpy(ai2_desc,"Random");
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected && second_ai_rand_selected)
                                 scene = ACHI_GAME_START;
                             break;
                         case SDL_EVENT_KEY_DOWN:
-                            if (event.key.key == SDLK_RETURN && order_selected)
+                            if (event.key.key == SDLK_RETURN && order_selected) {
+                                TTF_DestroyText(TITLE_text);
+                                char buf2[1024];
+                                sprintf(buf2,"%s AI VS %s AI Mode",ai_desc,ai2_desc);
+                                TITLE_text = TTF_CreateText(text_engine,font,buf2,0);
                                 scene = ACHI_GAME_START;
+                            }
                             break;
                         default: ;
                     }
                 }
-                if (order_selected) {
+                if (order_selected && second_ai_rand_selected) {
                     TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
                     if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
                         SDL_SetCursor(pointing_cursor);
                 }
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS_rect) ||
                     SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS_rect) || SDL_PointInRectFloat(
-                        &mouse, &NO_RANDOMNESS_rect))
+                        &mouse, &NO_RANDOMNESS_rect) || SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS2_rect) ||
+                    SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS2_rect) || SDL_PointInRectFloat(
+                        &mouse, &NO_RANDOMNESS2_rect))
                     SDL_SetCursor(pointing_cursor);
                 break;
 
@@ -482,8 +549,8 @@ int main(void) {
                                     (round <= 6) ? "Placement" : "Moving", turn);
                             break;
                         case GAME_MODE_AVA:
-                            sprintf(buf, "Round N°%d - %s Phase - %s", round, (round <= 6) ? "Placement" : "Moving",
-                                    (round % 2 != 0) ? "Minimizer turn" : "Maximizer turn");
+                            sprintf(buf, "Round N°%d - %s turn Phase - %s", round, (round <= 6) ? "Placement" : "Moving",
+                                    (round % 2 != 0) ? ai_desc : ai2_desc);
                         default: ;
                     }
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
@@ -682,7 +749,8 @@ int main(void) {
                                 SDL_RenderPresent(renderer);
                                 SDL_Delay(200);
                                 pair place = minimax(game_board, ai_first, round,
-                                                     SDL_min(max_rounds + 1, (DLS_LIMIT +(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                     SDL_min(max_rounds + 1,
+                                                             (DLS_LIMIT +(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
                                 free(board_cleaner);
@@ -698,14 +766,16 @@ int main(void) {
                             int placement;
                             board temp_board = nullptr;
                             pair place;
-                            switch (randomness) {
+                            RANDOMNESS current_randomness = (turn == 1) ? randomness_first_ai : randomness_second_ai;
+                            switch (current_randomness) {
                                 case NO_RAND:
                                     if (turn == 1) {
                                         TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                         SDL_RenderPresent(renderer);
                                         SDL_Delay(200);
                                         place = minimax(game_board, true, round,
-                                                        SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                        SDL_min(max_rounds + 1,
+                                                                (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     } else {
@@ -713,10 +783,12 @@ int main(void) {
                                         SDL_RenderPresent(renderer);
                                         SDL_Delay(200);
                                         place = minimax(game_board, false, round,
-                                                        SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                        SDL_min(max_rounds + 1,
+                                                                (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     }
+                                SDL_Log("Minimax Move");
                                     break;
                                 case SOME_RAND:
 #ifdef _SDL_PLATFORM_WINDOWS
@@ -731,7 +803,6 @@ int main(void) {
 
                                             temp_board =
                                                     next_board(game_board, placement, round);
-                                            SDL_Log("Random Move");
                                         } while (temp_board == nullptr);
                                         round++;
                                     } else {
@@ -740,7 +811,8 @@ int main(void) {
                                             SDL_RenderPresent(renderer);
                                             SDL_Delay(200);
                                             place = minimax(game_board, true, round,
-                                                            SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                            SDL_min(max_rounds + 1,
+                                                                    (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         } else {
@@ -748,7 +820,8 @@ int main(void) {
                                             SDL_RenderPresent(renderer);
                                             SDL_Delay(200);
                                             place = minimax(game_board, false, round,
-                                                            SDL_min(max_rounds + 1, (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                            SDL_min(max_rounds + 1,
+                                                                    (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         }
@@ -769,7 +842,6 @@ int main(void) {
                                     break;
                             }
 
-                            SDL_Log("%d Placement : %d", turn, placement);
                             game_board = temp_board;
                             free(board_cleaner);
                             board_cleaner = game_board;
@@ -878,8 +950,7 @@ int main(void) {
                                         state = 0;
                                         if (game_board != nullptr) {
                                             free(game_board);
-                                            game_board= board_cleaner = nullptr;
-
+                                            game_board = board_cleaner = nullptr;
                                         }
 
                                         scene = ACHI_GAME_START;
@@ -891,7 +962,7 @@ int main(void) {
                                         state = 0;
                                         if (game_board != nullptr) {
                                             free(game_board);
-                                            game_board= board_cleaner = nullptr;
+                                            game_board = board_cleaner = nullptr;
                                         }
 
                                         game_mode = NONE;
