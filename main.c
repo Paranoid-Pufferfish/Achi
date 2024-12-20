@@ -491,13 +491,20 @@ int main(void) {
                                 TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 strcpy(ai2_desc,"Random");
                             }
-                            if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected && second_ai_rand_selected)
+                            if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected && second_ai_rand_selected) {
+                                TTF_DestroyText(TITLE_text);
+                                char buf2[1024];
+                                SDL_Log("%s",ai2_desc);
+                                sprintf(buf2,"%s AI VS %s AI Mode",ai_desc,ai2_desc);
+                                TITLE_text = TTF_CreateText(text_engine,font,buf2,0);
                                 scene = ACHI_GAME_START;
+                            }
                             break;
                         case SDL_EVENT_KEY_DOWN:
                             if (event.key.key == SDLK_RETURN && order_selected) {
                                 TTF_DestroyText(TITLE_text);
                                 char buf2[1024];
+                                SDL_Log("%s",ai2_desc);
                                 sprintf(buf2,"%s AI VS %s AI Mode",ai_desc,ai2_desc);
                                 TITLE_text = TTF_CreateText(text_engine,font,buf2,0);
                                 scene = ACHI_GAME_START;
