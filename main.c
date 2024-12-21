@@ -57,16 +57,28 @@ int main(void) {
     SDL_Renderer *renderer;
     SDL_FPoint window_resolution = {1366, 768};
     float board_dims = window_resolution.y - 300;
-    float piece_size = 75;
-    float empty_square_size = 25;
+    float piece_size = board_dims / 5;
+    float empty_square_size = piece_size / 3;
     int dls_limit = 8;
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
         return 1;
     }
-    if (!SDL_CreateWindowAndRenderer("Achi Game", (int) window_resolution.x, (int) window_resolution.y, 0, &window,
+    if (!SDL_CreateWindowAndRenderer("Achi Game", (int) window_resolution.x, (int) window_resolution.y,
+                                     SDL_WINDOW_RESIZABLE, &window,
                                      &renderer)) {
         SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_Texture *unoccupied_square = IMG_LoadTexture(renderer, "../media/unoccupied_piece.svg");
+
+    if (unoccupied_square == nullptr) {
+        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_Texture *player_occupied = IMG_LoadTexture(renderer, "../media/player_piece.svg");
+    if (player_occupied == nullptr) {
+        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
     }
     ACHI_SCENE scene = ACHI_MENU;
@@ -91,6 +103,9 @@ int main(void) {
     TTF_TextEngine *text_engine = TTF_CreateRendererTextEngine(renderer);
     SDL_Cursor *pointing_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_POINTER);
     SDL_Cursor *default_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    board game_board = nullptr;
+    board board_cleaner = nullptr;
+    SDL_FRect squares[9];
     char buf[1024] = {0};
     char ai_desc[100] = {0};
     char ai2_desc[100] = {0};
@@ -98,8 +113,6 @@ int main(void) {
     SDL_FRect graphical_board = {
         (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70, board_dims, board_dims
     };
-    board game_board = nullptr;
-    board board_cleaner = nullptr;
     SDL_FPoint hot_points[9];
     hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
     hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
@@ -112,18 +125,7 @@ int main(void) {
     hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
     hot_points[7] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y + board_dims};
     hot_points[8] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y + board_dims};
-    SDL_Texture *unoccupied_square = IMG_LoadTexture(renderer, "../media/unoccupied_piece.svg");
-    SDL_FRect squares[9];
 
-    if (unoccupied_square == nullptr) {
-        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
-        return 1;
-    }
-    SDL_Texture *player_occupied = IMG_LoadTexture(renderer, "../media/player_piece.svg");
-    if (player_occupied == nullptr) {
-        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
-        return 1;
-    }
     TTF_Text *WELCOME_text = TTF_CreateText(text_engine, font, "Welcome to the Achi game!", 0);
     TTF_Text *PVP_text = TTF_CreateText(text_engine, font, "1) Player VS Player", 0);
     TTF_Text *PVA_text = TTF_CreateText(text_engine, font, "2) Player VS AI", 0);
@@ -276,8 +278,150 @@ int main(void) {
                     SDL_PointInRectFloat(&mouse, &SETTINGS_rect) ||
                     SDL_PointInRectFloat(&mouse, &ABOUT_rect) || SDL_PointInRectFloat(&mouse, &QUIT_rect))
                     SDL_SetCursor(pointing_cursor);
-                if (SDL_PollEvent(&event)) {
+                while (SDL_PollEvent(&event)) {
                     switch (event.type) {
+                        case SDL_EVENT_WINDOW_RESIZED:
+                            int h, w;
+                            SDL_GetWindowSize(window, &w, &h);
+                            window_resolution.x = (float) w;
+                            window_resolution.y = (float) h;
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                            graphical_board = (SDL_FRect){
+                                (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                board_dims, board_dims
+                            };
+                            hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                            hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                            hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                            hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                            hot_points[4] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[5] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                            hot_points[7] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                            };
+                            hot_points[8] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims
+                            };
+
+                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                            WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                            ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                            ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                            ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                            AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                            AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                            TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                            BACK_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                            RETRY_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                            MAIN_MENU_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                (float) text_w,
+                                (float) text_h
+                            };
+                            menu_y = 50;
+                            menu_x = 0;
+                            TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                            PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                            PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                            AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                            SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                            ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                            QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                            AIFirst_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                            PlayerFirst_rect = (SDL_FRect){
+                                3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                            ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                            AI_ONE_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                            AI_TWO_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                            NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                            SOME_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                            ALL_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                            NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                            SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                            ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                            TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                 window_resolution.y - (float) text_h);
+                            NEXT_rect = (SDL_FRect){
+                                window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                (float) text_w, (float) text_h
+                            };
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_GAMEPAD_BUTTON_UP:
@@ -330,8 +474,150 @@ int main(void) {
                 else
                     max_rounds = 0;
                 SDL_StartTextInputWithProperties(window, input_properties_id);
-                if (SDL_PollEvent(&event)) {
+                while (SDL_PollEvent(&event)) {
                     switch (event.type) {
+                        case SDL_EVENT_WINDOW_RESIZED:
+                            int h, w;
+                            SDL_GetWindowSize(window, &w, &h);
+                            window_resolution.x = (float) w;
+                            window_resolution.y = (float) h;
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                            graphical_board = (SDL_FRect){
+                                (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                board_dims, board_dims
+                            };
+                            hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                            hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                            hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                            hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                            hot_points[4] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[5] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                            hot_points[7] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                            };
+                            hot_points[8] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims
+                            };
+
+                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                            WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                            ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                            ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                            ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                            AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                            AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                            TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                            BACK_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                            RETRY_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                            MAIN_MENU_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                (float) text_w,
+                                (float) text_h
+                            };
+                            menu_y = 50;
+                            menu_x = 0;
+                            TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                            PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                            PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                            AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                            SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                            ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                            QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                            AIFirst_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                            PlayerFirst_rect = (SDL_FRect){
+                                3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                            ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                            AI_ONE_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                            AI_TWO_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                            NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                            SOME_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                            ALL_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                            NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                            SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                            ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                            TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                 window_resolution.y - (float) text_h);
+                            NEXT_rect = (SDL_FRect){
+                                window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                (float) text_w, (float) text_h
+                            };
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_TEXT_INPUT:
@@ -395,8 +681,150 @@ int main(void) {
                 TTF_DrawRendererText(AIFirst_text, AIFirst_rect.x, AIFirst_rect.y);
                 TTF_DrawRendererText(PlayerFirst_text, PlayerFirst_rect.x, PlayerFirst_rect.y);
 
-                if (SDL_PollEvent(&event)) {
+                while (SDL_PollEvent(&event)) {
                     switch (event.type) {
+                        case SDL_EVENT_WINDOW_RESIZED:
+                            int h, w;
+                            SDL_GetWindowSize(window, &w, &h);
+                            window_resolution.x = (float) w;
+                            window_resolution.y = (float) h;
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                            graphical_board = (SDL_FRect){
+                                (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                board_dims, board_dims
+                            };
+                            hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                            hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                            hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                            hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                            hot_points[4] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[5] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                            hot_points[7] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                            };
+                            hot_points[8] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims
+                            };
+
+                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                            WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                            ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                            ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                            ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                            AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                            AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                            TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                            BACK_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                            RETRY_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                            MAIN_MENU_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                (float) text_w,
+                                (float) text_h
+                            };
+                            menu_y = 50;
+                            menu_x = 0;
+                            TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                            PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                            PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                            AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                            SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                            ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                            QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                            AIFirst_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                            PlayerFirst_rect = (SDL_FRect){
+                                3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                            ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                            AI_ONE_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                            AI_TWO_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                            NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                            SOME_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                            ALL_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                            NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                            SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                            ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                            TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                 window_resolution.y - (float) text_h);
+                            NEXT_rect = (SDL_FRect){
+                                window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                (float) text_w, (float) text_h
+                            };
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
@@ -446,8 +874,152 @@ int main(void) {
                 TTF_DrawRendererText(NO_RANDOMNESS2_text, NO_RANDOMNESS2_rect.x, NO_RANDOMNESS2_rect.y);
                 TTF_DrawRendererText(SOME_RANDOMNESS2_text, SOME_RANDOMNESS2_rect.x, SOME_RANDOMNESS2_rect.y);
                 TTF_DrawRendererText(ALL_RANDOMNESS2_text, ALL_RANDOMNESS2_rect.x, ALL_RANDOMNESS2_rect.y);
-                if (SDL_PollEvent(&event)) {
+                while (SDL_PollEvent(&event)) {
                     switch (event.type) {
+                        case SDL_EVENT_WINDOW_RESIZED:
+                            int h, w;
+                            SDL_GetWindowSize(window, &w, &h);
+                            window_resolution.x = (float) w;
+                            window_resolution.y = (float) h;
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                            graphical_board = (SDL_FRect){
+                                (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                board_dims, board_dims
+                            };
+                            hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                            hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                            hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                            hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                            hot_points[4] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[5] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                            hot_points[7] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                            };
+                            hot_points[8] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims
+                            };
+
+                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                            CREDITS_rect = (SDL_FRect){
+                                (window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h
+                            };
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                            WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                            ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                            ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                            ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                            AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                            AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                            TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                            BACK_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                            RETRY_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                            MAIN_MENU_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                (float) text_w,
+                                (float) text_h
+                            };
+                            menu_y = 50;
+                            menu_x = 0;
+                            TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                            PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                            PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                            AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                            SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                            ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                            QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                            AIFirst_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                            PlayerFirst_rect = (SDL_FRect){
+                                3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                            ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                            AI_ONE_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                            AI_TWO_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                            NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                            SOME_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                            ALL_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                            NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                            SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                            ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                            TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                 window_resolution.y - (float) text_h);
+                            NEXT_rect = (SDL_FRect){
+                                window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                (float) text_w, (float) text_h
+                            };
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
@@ -633,8 +1205,152 @@ int main(void) {
                         }
                     }
 
-                    if (SDL_PollEvent(&event)) {
+                    while (SDL_PollEvent(&event)) {
                         switch (event.type) {
+                            case SDL_EVENT_WINDOW_RESIZED:
+                                int h, w;
+                                SDL_GetWindowSize(window, &w, &h);
+                                window_resolution.x = (float) w;
+                                window_resolution.y = (float) h;
+                                board_dims = window_resolution.y - 300;
+                                piece_size = board_dims / 5;
+                                empty_square_size = piece_size / 3;
+                                graphical_board = (SDL_FRect){
+                                    (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                    board_dims, board_dims
+                                };
+                                hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                                hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                                hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                                hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                                hot_points[4] = (SDL_FPoint){
+                                    graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                                };
+                                hot_points[5] = (SDL_FPoint){
+                                    graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                                };
+                                hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                                hot_points[7] = (SDL_FPoint){
+                                    graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                                };
+                                hot_points[8] = (SDL_FPoint){
+                                    graphical_board.x + board_dims, graphical_board.y + board_dims
+                                };
+
+                                SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                                CREDITS_rect = (SDL_FRect){
+                                    (window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h
+                                };
+                                text_w = 0;
+                                text_h = 0;
+                                TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                                WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                                TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                                ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                                TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                                ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                                TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                                ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                                TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                                AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                                AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                                TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                                BACK_rect = (SDL_FRect){
+                                    0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                                RETRY_rect = (SDL_FRect){
+                                    0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                                MAIN_MENU_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                    (float) text_w,
+                                    (float) text_h
+                                };
+                                menu_y = 50;
+                                menu_x = 0;
+                                TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                                PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                                PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                                AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                                SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                                ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                                QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                                AIFirst_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                                PlayerFirst_rect = (SDL_FRect){
+                                    3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                                ENTROPY_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                                AI_ONE_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                                AI_TWO_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                                NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                                SOME_RANDOMNESS_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                                ALL_RANDOMNESS_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                                NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                                SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                                ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                                TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                     window_resolution.y - (float) text_h);
+                                NEXT_rect = (SDL_FRect){
+                                    window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                    (float) text_w, (float) text_h
+                                };
+                                break;
                             case SDL_EVENT_QUIT: quit = true;
                                 break;
                             case SDL_EVENT_MOUSE_BUTTON_UP:
@@ -959,8 +1675,152 @@ int main(void) {
                         }
                     }
 
-                    if (SDL_PollEvent(&event)) {
+                    while (SDL_PollEvent(&event)) {
                         switch (event.type) {
+                            case SDL_EVENT_WINDOW_RESIZED:
+                                int h, w;
+                                SDL_GetWindowSize(window, &w, &h);
+                                window_resolution.x = (float) w;
+                                window_resolution.y = (float) h;
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                                graphical_board = (SDL_FRect){
+                                    (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                    board_dims, board_dims
+                                };
+                                hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                                hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                                hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                                hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                                hot_points[4] = (SDL_FPoint){
+                                    graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                                };
+                                hot_points[5] = (SDL_FPoint){
+                                    graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                                };
+                                hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                                hot_points[7] = (SDL_FPoint){
+                                    graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                                };
+                                hot_points[8] = (SDL_FPoint){
+                                    graphical_board.x + board_dims, graphical_board.y + board_dims
+                                };
+
+                                SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                                CREDITS_rect = (SDL_FRect){
+                                    (window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h
+                                };
+                                text_w = 0;
+                                text_h = 0;
+                                TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                                WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                                TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                                ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                                TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                                ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                                TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                                ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                                TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                                AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                                AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                                TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                                BACK_rect = (SDL_FRect){
+                                    0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                                RETRY_rect = (SDL_FRect){
+                                    0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                                MAIN_MENU_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                    (float) text_w,
+                                    (float) text_h
+                                };
+                                menu_y = 50;
+                                menu_x = 0;
+                                TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                                PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                                PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                                AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                                SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                                ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                                QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                                AIFirst_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                                PlayerFirst_rect = (SDL_FRect){
+                                    3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                                ENTROPY_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                                AI_ONE_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                                AI_TWO_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                                NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                                SOME_RANDOMNESS_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                                ALL_RANDOMNESS_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                                NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                                TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                                SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                                ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                    (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                                };
+
+                                TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                                TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                     window_resolution.y - (float) text_h);
+                                NEXT_rect = (SDL_FRect){
+                                    window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                    (float) text_w, (float) text_h
+                                };
+                                break;
                             case SDL_EVENT_QUIT: SDL_Log("Quitting");
                                 quit = true;
                                 break;
@@ -1006,8 +1866,150 @@ int main(void) {
                 SDL_RenderTexture(renderer, CREDITS_text_texture, nullptr, &CREDITS_rect);
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect))
                     SDL_SetCursor(pointing_cursor);
-                if (SDL_PollEvent(&event)) {
+                while (SDL_PollEvent(&event)) {
                     switch (event.type) {
+                        case SDL_EVENT_WINDOW_RESIZED:
+                            int h, w;
+                            SDL_GetWindowSize(window, &w, &h);
+                            window_resolution.x = (float) w;
+                            window_resolution.y = (float) h;
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                            graphical_board = (SDL_FRect){
+                                (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                board_dims, board_dims
+                            };
+                            hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                            hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                            hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                            hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                            hot_points[4] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[5] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                            hot_points[7] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                            };
+                            hot_points[8] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims
+                            };
+
+                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                            WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                            ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                            ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                            ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                            AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                            AI_THINKING_y = (window_resolution.y - (float) text_h);
+
+                            TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                            BACK_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                            RETRY_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                            MAIN_MENU_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                (float) text_w,
+                                (float) text_h
+                            };
+                            menu_y = 50;
+                            menu_x = 0;
+                            TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                            PVP_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                            PVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                            AVA_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                            SETTINGS_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                            ABOUT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                            QUIT_rect = (SDL_FRect){menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                            AIFirst_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                            PlayerFirst_rect = (SDL_FRect){
+                                3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                            ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                            AI_ONE_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                            AI_TWO_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                            NO_RANDOMNESS_rect = (SDL_FRect){0, 300, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                            SOME_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                            ALL_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                            NO_RANDOMNESS2_rect = (SDL_FRect){0, 500, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                            SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                            ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                            TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                 window_resolution.y - (float) text_h);
+                            NEXT_rect = (SDL_FRect){
+                                window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                (float) text_w, (float) text_h
+                            };
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
