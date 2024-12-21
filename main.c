@@ -9,18 +9,12 @@
 
 #include "game_board.h"
 #include "decision_tree.h"
-#include "game_interface.h"
 
-#define DLS_LIMIT 8
-#define SCREEN_WIDTH 1366
-#define SCREEN_HEIGHT 768
-#define BOARD_DIMS (SCREEN_HEIGHT-300)
-#define PLAYER_SIZE 75
-#define EMPTY_SIZE 25
 #define CREDITS "Authors:\n- MOUHOUS Mathya (G3)\n- AIT MEDDOUR Fouâd-Eddine (G1)\nSoftware Used:\n- SDL3 master (https://github.com/libsdl-org/SDL)\n- SDL3_ttf master (https://github.com/libsdl-org/SDL_ttf)\n- SDL3_image master (https://github.com/libsdl-org/SDL_image)\n- CMake 3.30.6 (https://gitlab.kitware.com/cmake/cmake)\nFont : Acme 9 Regular\nTested On :\n- Ubuntu 24.10\n- Gentoo amd64 Stable\n- Windows 10 KVM/QEMU\n- Windows 11"
 
 typedef enum ACHI_SCENE {
     ACHI_MENU,
+    ACHI_SETTINGS,
     ACHI_ABOUT,
     ACHI_PREGAME_ROUNDS,
     ACHI_PREGAME_PVA,
@@ -61,16 +55,20 @@ int main(void) {
 #endif
     SDL_Window *window;
     SDL_Renderer *renderer;
+    SDL_FPoint window_resolution = {1366, 768};
+    float board_dims = window_resolution.y - 300;
+    float piece_size = 75;
+    float empty_square_size = 25;
+    int dls_limit = 8;
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
         return 1;
     }
-    if (!SDL_CreateWindowAndRenderer("Achi Game", SCREEN_WIDTH, SCREEN_HEIGHT, 0, &window,
+    if (!SDL_CreateWindowAndRenderer("Achi Game", (int) window_resolution.x, (int) window_resolution.y, 0, &window,
                                      &renderer)) {
         SDL_LogCritical(SDL_LOG_CATEGORY_RENDER, "Error Creating Window and Renderer : %s\n", SDL_GetError());
         return 1;
     }
-
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     bool skip_cycle = false;
@@ -98,22 +96,22 @@ int main(void) {
     char ai2_desc[100] = {0};
     SDL_Event event;
     SDL_FRect graphical_board = {
-        (float) (SCREEN_WIDTH - BOARD_DIMS) / 2, (float) (SCREEN_HEIGHT - BOARD_DIMS) / 2 + 70, BOARD_DIMS, BOARD_DIMS
+        (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70, board_dims, board_dims
     };
     board game_board = nullptr;
     board board_cleaner = nullptr;
     SDL_FPoint hot_points[9];
     hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
-    hot_points[1] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y};
-    hot_points[2] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y};
-    hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + (float) BOARD_DIMS / 2};
+    hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+    hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+    hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
     hot_points[4] = (SDL_FPoint){
-        graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y + (float) BOARD_DIMS / 2
+        graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
     };
-    hot_points[5] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y + (float) BOARD_DIMS / 2};
-    hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + (float) BOARD_DIMS};
-    hot_points[7] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS / 2, graphical_board.y + (float) BOARD_DIMS};
-    hot_points[8] = (SDL_FPoint){graphical_board.x + (float) BOARD_DIMS, graphical_board.y + (float) BOARD_DIMS};
+    hot_points[5] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y + board_dims / 2};
+    hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+    hot_points[7] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y + board_dims};
+    hot_points[8] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y + board_dims};
     SDL_Texture *unoccupied_square = IMG_LoadTexture(renderer, "../media/unoccupied_piece.svg");
     SDL_FRect squares[9];
 
@@ -130,8 +128,9 @@ int main(void) {
     TTF_Text *PVP_text = TTF_CreateText(text_engine, font, "1) Player VS Player", 0);
     TTF_Text *PVA_text = TTF_CreateText(text_engine, font, "2) Player VS AI", 0);
     TTF_Text *AVA_text = TTF_CreateText(text_engine, font, "3) AI VS AI", 0);
-    TTF_Text *ABOUT_text = TTF_CreateText(text_engine, font, "4) About", 0);
-    TTF_Text *QUIT_text = TTF_CreateText(text_engine, font, "5) Quit to desktop", 0);
+    TTF_Text *SETTINGS_text = TTF_CreateText(text_engine, font, "4) Settings", 0);
+    TTF_Text *ABOUT_text = TTF_CreateText(text_engine, font, "5) About", 0);
+    TTF_Text *QUIT_text = TTF_CreateText(text_engine, font, "6) Quit to desktop", 0);
     TTF_SetTextColorFloat(QUIT_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
     TTF_Text *TITLE_text = nullptr;
     TTF_Text *INPUT_text = nullptr;
@@ -166,85 +165,92 @@ int main(void) {
     float CREDITS_w;
     float CREDITS_h;
     SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-    SDL_FRect CREDITS_rect = {(SCREEN_WIDTH - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
+    SDL_FRect CREDITS_rect = {(window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
     SDL_DestroySurface(CREDITS_text_surface);
     int text_w = 0;
     int text_h = 0;
     TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
-    float WELCOME_x = (float) (SCREEN_WIDTH - text_w) / 2;
+    float WELCOME_x = (window_resolution.x - (float) text_w) / 2;
 
     TTF_GetTextSize(ORDER_text, &text_w, &text_h);
-    float ORDER_x = (float) (SCREEN_WIDTH - text_w) / 2;
+    float ORDER_x = (window_resolution.x - (float) text_w) / 2;
     TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
-    float ABOUT_TITLE_x = (float) (SCREEN_WIDTH - text_w) / 2;
+    float ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
     TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
-    float ROUNDS_x = (float) (SCREEN_WIDTH - text_w) / 2;
+    float ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
     TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
-    float AI_THINKING_x = (float) (SCREEN_WIDTH - text_w) / 2;
-    float AI_THINKING_y = (float) (SCREEN_HEIGHT - text_h);
+    float AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+    float AI_THINKING_y = (window_resolution.y - (float) text_h);
 
     TTF_GetTextSize(BACK_text, &text_w, &text_h);
-    SDL_FRect BACK_rect = {0, (float) (SCREEN_HEIGHT - text_h), (float) text_w, (float) text_h};
+    SDL_FRect BACK_rect = {0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h};
 
     TTF_GetTextSize(RETRY_text, &text_w, &text_h);
-    SDL_FRect RETRY_rect = {0, (float) (SCREEN_HEIGHT - text_h) / 2, (float) text_w, (float) text_h};
+    SDL_FRect RETRY_rect = {0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
     SDL_FRect MAIN_MENU_rect = {
-        (float) (SCREEN_WIDTH - text_w), (float) (SCREEN_HEIGHT - text_h) / 2, (float) text_w, (float) text_h
+        (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2, (float) text_w,
+        (float) text_h
     };
-
+    float menu_y = 50;
+    float menu_x = 0;
     TTF_GetTextSize(PVP_text, &text_w, &text_h);
-    SDL_FRect PVP_rect = {0, 200, (float) text_w, (float) text_h};
+    SDL_FRect PVP_rect = {menu_x, menu_y += 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(PVA_text, &text_w, &text_h);
-    SDL_FRect PVA_rect = {0, 300, (float) text_w, (float) text_h};
+    SDL_FRect PVA_rect = {menu_x, menu_y += 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(AVA_text, &text_w, &text_h);
-    SDL_FRect AVA_rect = {0, 400, (float) text_w, (float) text_h};
+    SDL_FRect AVA_rect = {menu_x, menu_y += 100, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+    SDL_FRect SETTINGS_rect = {menu_x, menu_y += 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
-    SDL_FRect ABOUT_rect = {0, 500, (float) text_w, (float) text_h};
+    SDL_FRect ABOUT_rect = {menu_x, menu_y += 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(QUIT_text, &text_w, &text_h);
-    SDL_FRect QUIT_rect = {0, 600, (float) text_w, (float) text_h};
+    SDL_FRect QUIT_rect = {menu_x, menu_y += 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
-    SDL_FRect AIFirst_rect = {(float) (SCREEN_WIDTH - text_w) / 4, 400, (float) text_w, (float) text_h};
+    SDL_FRect AIFirst_rect = {(window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
-    SDL_FRect PlayerFirst_rect = {3 * (float) (SCREEN_WIDTH - text_w) / 4, 400, (float) text_w, (float) text_h};
+    SDL_FRect PlayerFirst_rect = {3 * (window_resolution.x - (float) text_w) / 4, 400, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
-    SDL_FRect ENTROPY_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 100, (float) text_w, (float) text_h};
+    SDL_FRect ENTROPY_rect = {(window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
-    SDL_FRect AI_ONE_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 200, (float) text_w, (float) text_h};
+    SDL_FRect AI_ONE_rect = {(window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
-    SDL_FRect AI_TWO_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 400, (float) text_w, (float) text_h};
+    SDL_FRect AI_TWO_rect = {(window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
     SDL_FRect NO_RANDOMNESS_rect = {0, 300, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
-    SDL_FRect SOME_RANDOMNESS_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 300, (float) text_w, (float) text_h};
+    SDL_FRect SOME_RANDOMNESS_rect = {(window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
-    SDL_FRect ALL_RANDOMNESS_rect = {(float) (SCREEN_WIDTH - text_w), 300, (float) text_w, (float) text_h};
+    SDL_FRect ALL_RANDOMNESS_rect = {(window_resolution.x - (float) text_w), 300, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
     SDL_FRect NO_RANDOMNESS2_rect = {0, 500, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
-    SDL_FRect SOME_RANDOMNESS2_rect = {(float) (SCREEN_WIDTH - text_w) / 2, 500, (float) text_w, (float) text_h};
+    SDL_FRect SOME_RANDOMNESS2_rect = {(window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
-    SDL_FRect ALL_RANDOMNESS2_rect = {(float) (SCREEN_WIDTH - text_w), 500, (float) text_w, (float) text_h};
+    SDL_FRect ALL_RANDOMNESS2_rect = {(window_resolution.x - (float) text_w), 500, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(NEXT_text, &text_w, &text_h);
-    TTF_DrawRendererText(NEXT_text, SCREEN_WIDTH - text_w, SCREEN_HEIGHT - text_h);
-    SDL_FRect NEXT_rect = {SCREEN_WIDTH - text_w, SCREEN_HEIGHT - text_h, (float) text_w, (float) text_h};
+    TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w, window_resolution.y - (float) text_h);
+    SDL_FRect NEXT_rect = {
+        window_resolution.x - (float) text_w, window_resolution.y - (float) text_h, (float) text_w, (float) text_h
+    };
     SDL_FPoint mouse;
     SDL_PropertiesID input_properties_id = SDL_CreateProperties();
     SDL_SetNumberProperty(input_properties_id,SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_NUMBER);
@@ -259,13 +265,15 @@ int main(void) {
         switch (scene) {
             case ACHI_MENU:
                 TTF_DrawRendererText(WELCOME_text, WELCOME_x, 0);
-                TTF_DrawRendererText(PVP_text, 0, 200);
-                TTF_DrawRendererText(PVA_text, 0, 300);
-                TTF_DrawRendererText(AVA_text, 0, 400);
-                TTF_DrawRendererText(ABOUT_text, 0, 500);
-                TTF_DrawRendererText(QUIT_text, 0, 600);
+                TTF_DrawRendererText(PVP_text, PVP_rect.x, PVP_rect.y);
+                TTF_DrawRendererText(PVA_text, PVA_rect.x, PVA_rect.y);
+                TTF_DrawRendererText(AVA_text, AVA_rect.x, AVA_rect.y);
+                TTF_DrawRendererText(SETTINGS_text, SETTINGS_rect.x, SETTINGS_rect.y);
+                TTF_DrawRendererText(ABOUT_text, ABOUT_rect.x, ABOUT_rect.y);
+                TTF_DrawRendererText(QUIT_text, QUIT_rect.x, QUIT_rect.y);
                 if (SDL_PointInRectFloat(&mouse, &PVP_rect) ||
                     SDL_PointInRectFloat(&mouse, &PVA_rect) || SDL_PointInRectFloat(&mouse, &AVA_rect) ||
+                    SDL_PointInRectFloat(&mouse, &SETTINGS_rect) ||
                     SDL_PointInRectFloat(&mouse, &ABOUT_rect) || SDL_PointInRectFloat(&mouse, &QUIT_rect))
                     SDL_SetCursor(pointing_cursor);
                 if (SDL_PollEvent(&event)) {
@@ -291,6 +299,9 @@ int main(void) {
                                     TITLE_text = AVA_TITLE_text;
                                     game_mode = GAME_MODE_AVA;
                                 }
+                                if (SDL_PointInRectFloat(&mouse, &SETTINGS_rect)) {
+                                    scene = ACHI_SETTINGS;
+                                }
                                 if (SDL_PointInRectFloat(&mouse, &ABOUT_rect)) {
                                     scene = ACHI_ABOUT;
                                 }
@@ -306,14 +317,14 @@ int main(void) {
                 break;
             case ACHI_PREGAME_ROUNDS:
                 TTF_GetTextSize(TITLE_text, &text_w, &text_h);
-                TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
+                TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
                 TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
                 TTF_DrawRendererText(ROUNDS_text, ROUNDS_x, 200);
                 if (INPUT_text != nullptr)
                     TTF_DestroyText(INPUT_text);
                 INPUT_text = TTF_CreateText(text_engine, font, buf, 0);
                 TTF_GetTextSize(INPUT_text, &text_w, &text_h);
-                TTF_DrawRendererText(INPUT_text, (float) (SCREEN_WIDTH - text_w) / 2, 300);
+                TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, 300);
                 if (strlen(buf) > 0)
                     max_rounds = (int) strtol(buf, nullptr, 10);
                 else
@@ -378,7 +389,7 @@ int main(void) {
                 break;
             case ACHI_PREGAME_PVA:
                 TTF_GetTextSize(TITLE_text, &text_w, &text_h);
-                TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
+                TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
                 TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
                 TTF_DrawRendererText(ORDER_text, ORDER_x, 200);
                 TTF_DrawRendererText(AIFirst_text, AIFirst_rect.x, AIFirst_rect.y);
@@ -424,7 +435,7 @@ int main(void) {
                     SDL_SetCursor(pointing_cursor);
                 break;
             case ACHI_PREGAME_AVA: TTF_GetTextSize(TITLE_text, &text_w, &text_h);
-                TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
+                TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
                 TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
                 TTF_DrawRendererText(ENTROPY_text, ENTROPY_rect.x, ENTROPY_rect.y);
                 TTF_DrawRendererText(AI_ONE_text, AI_ONE_rect.x, AI_ONE_rect.y);
@@ -449,7 +460,7 @@ int main(void) {
                                 TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                strcpy(ai_desc,"Minimax");
+                                strcpy(ai_desc, "Minimax");
                             }
                             if (SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS_rect)) {
                                 order_selected = true;
@@ -457,7 +468,7 @@ int main(void) {
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                strcpy(ai_desc,"Half-Random");
+                                strcpy(ai_desc, "Half-Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS_rect)) {
                                 order_selected = true;
@@ -465,7 +476,7 @@ int main(void) {
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                strcpy(ai_desc,"Random");
+                                strcpy(ai_desc, "Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &NO_RANDOMNESS2_rect)) {
                                 second_ai_rand_selected = true;
@@ -473,7 +484,7 @@ int main(void) {
                                 TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                strcpy(ai2_desc,"Minimax");
+                                strcpy(ai2_desc, "Minimax");
                             }
                             if (SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS2_rect)) {
                                 second_ai_rand_selected = true;
@@ -481,7 +492,7 @@ int main(void) {
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                strcpy(ai2_desc,"Half-Random");
+                                strcpy(ai2_desc, "Half-Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS2_rect)) {
                                 second_ai_rand_selected = true;
@@ -489,13 +500,13 @@ int main(void) {
                                 TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
                                 TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                strcpy(ai2_desc,"Random");
+                                strcpy(ai2_desc, "Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected && second_ai_rand_selected) {
                                 TTF_DestroyText(TITLE_text);
                                 char buf2[1024];
-                                sprintf(buf2,"%s AI VS %s AI Mode",ai_desc,ai2_desc);
-                                TITLE_text = TTF_CreateText(text_engine,font,buf2,0);
+                                sprintf(buf2, "%s AI VS %s AI Mode", ai_desc, ai2_desc);
+                                TITLE_text = TTF_CreateText(text_engine, font, buf2, 0);
                                 scene = ACHI_GAME_START;
                             }
                             break;
@@ -503,8 +514,8 @@ int main(void) {
                             if (event.key.key == SDLK_RETURN && order_selected) {
                                 TTF_DestroyText(TITLE_text);
                                 char buf2[1024];
-                                sprintf(buf2,"%s AI VS %s AI Mode",ai_desc,ai2_desc);
-                                TITLE_text = TTF_CreateText(text_engine,font,buf2,0);
+                                sprintf(buf2, "%s AI VS %s AI Mode", ai_desc, ai2_desc);
+                                TITLE_text = TTF_CreateText(text_engine, font, buf2, 0);
                                 scene = ACHI_GAME_START;
                             }
                             break;
@@ -528,7 +539,7 @@ int main(void) {
                 if (round <= max_rounds) {
                     int turn = (round % 2 != 0) ? 1 : 2;
                     TTF_GetTextSize(TITLE_text, &text_w, &text_h);
-                    TTF_DrawRendererText(TITLE_text, (float) (SCREEN_WIDTH - text_w) / 2, 0);
+                    TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
                     if (ROUND_text != nullptr)
                         TTF_DestroyText(ROUND_text);
                     if (game_board == nullptr) {
@@ -554,14 +565,15 @@ int main(void) {
                                     (round <= 6) ? "Placement" : "Moving", turn);
                             break;
                         case GAME_MODE_AVA:
-                            sprintf(buf, "Round N°%d - %s turn Phase - %s", round, (round <= 6) ? "Placement" : "Moving",
+                            sprintf(buf, "Round N°%d - %s turn Phase - %s", round,
+                                    (round <= 6) ? "Placement" : "Moving",
                                     (round % 2 != 0) ? ai_desc : ai2_desc);
                         default: ;
                     }
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
                     ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
                     TTF_GetTextSize(ROUND_text, &text_w, &text_h);
-                    TTF_DrawRendererText(ROUND_text, (float) (SCREEN_WIDTH - text_w) / 2, 75);
+                    TTF_DrawRendererText(ROUND_text, (window_resolution.x - (float) text_w) / 2, 75);
                     SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
                     SDL_RenderRect(renderer, &graphical_board);
                     SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
@@ -572,22 +584,22 @@ int main(void) {
                     for (int i = 0; i < 9; ++i) {
                         switch (game_board[i].occupied_by) {
                             case -1:
-                                squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
-                                squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
-                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                squares[i].x = hot_points[i].x - (float) piece_size / 2;
+                                squares[i].y = hot_points[i].y - (float) piece_size / 2;
+                                squares[i].w = squares[i].h = piece_size;
                                 if (i == selected) {
-                                    squares[i].w = squares[i].h = PLAYER_SIZE + 20;
-                                    squares[i].x = hot_points[i].x - (float) (PLAYER_SIZE + 20) / 2;
-                                    squares[i].y = hot_points[i].y - (float) (PLAYER_SIZE + 20) / 2;
+                                    squares[i].w = squares[i].h = piece_size + 20;
+                                    squares[i].x = hot_points[i].x - (float) (piece_size + 20) / 2;
+                                    squares[i].y = hot_points[i].y - (float) (piece_size + 20) / 2;
                                 } else
-                                    squares[i].w = squares[i].h = PLAYER_SIZE;
+                                    squares[i].w = squares[i].h = piece_size;
                                 SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
                             case 0:
-                                squares[i].x = hot_points[i].x - (float) EMPTY_SIZE / 2;
-                                squares[i].y = hot_points[i].y - (float) EMPTY_SIZE / 2;
-                                squares[i].w = squares[i].h = EMPTY_SIZE;
+                                squares[i].x = hot_points[i].x - (float) empty_square_size / 2;
+                                squares[i].y = hot_points[i].y - (float) empty_square_size / 2;
+                                squares[i].w = squares[i].h = empty_square_size;
                                 if (round > 6 && selected != -1) {
                                     if (selected == 4 || i == 4)
                                         SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
@@ -605,15 +617,15 @@ int main(void) {
                                 SDL_RenderTexture(renderer, unoccupied_square, nullptr, &squares[i]);
                                 break;
                             case 1:
-                                squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
-                                squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
-                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                squares[i].x = hot_points[i].x - (float) piece_size / 2;
+                                squares[i].y = hot_points[i].y - (float) piece_size / 2;
+                                squares[i].w = squares[i].h = piece_size;
                                 if (i == selected) {
-                                    squares[i].w = squares[i].h = PLAYER_SIZE + 20;
-                                    squares[i].x = hot_points[i].x - (float) (PLAYER_SIZE + 20) / 2;
-                                    squares[i].y = hot_points[i].y - (float) (PLAYER_SIZE + 20) / 2;
+                                    squares[i].w = squares[i].h = piece_size + 20;
+                                    squares[i].x = hot_points[i].x - (float) (piece_size + 20) / 2;
+                                    squares[i].y = hot_points[i].y - (float) (piece_size + 20) / 2;
                                 } else
-                                    squares[i].w = squares[i].h = PLAYER_SIZE;
+                                    squares[i].w = squares[i].h = piece_size;
                                 SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
@@ -721,11 +733,11 @@ int main(void) {
                                                                                        [j]];
                                                         if (SDL_PointInRectFloat(&mouse, &squares[current_adjacent])) {
                                                             selected = -1;
-                                                                game_board =
-                                                                        next_board(game_board, selected_index * 3 + j,
-                                                                                   round++);
-                                                                free(board_cleaner);
-                                                                board_cleaner = game_board;
+                                                            game_board =
+                                                                    next_board(game_board, selected_index * 3 + j,
+                                                                               round++);
+                                                            free(board_cleaner);
+                                                            board_cleaner = game_board;
                                                             break;
                                                         }
                                                     }
@@ -761,7 +773,7 @@ int main(void) {
                                 SDL_Delay(200);
                                 pair place = minimax(game_board, ai_first, round,
                                                      SDL_min(max_rounds + 1,
-                                                             (DLS_LIMIT +(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                             (dls_limit +(round / dls_limit) * dls_limit) +1));
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
                                 free(board_cleaner);
@@ -786,7 +798,7 @@ int main(void) {
                                         SDL_Delay(200);
                                         place = minimax(game_board, true, round,
                                                         SDL_min(max_rounds + 1,
-                                                                (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                                (dls_limit+(round / dls_limit) * dls_limit) +1));
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     } else {
@@ -795,11 +807,11 @@ int main(void) {
                                         SDL_Delay(200);
                                         place = minimax(game_board, false, round,
                                                         SDL_min(max_rounds + 1,
-                                                                (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                                (dls_limit+(round / dls_limit) * dls_limit) +1));
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     }
-                                SDL_Log("Minimax Move");
+                                    SDL_Log("Minimax Move");
                                     break;
                                 case SOME_RAND:
 #ifdef _SDL_PLATFORM_WINDOWS
@@ -823,7 +835,7 @@ int main(void) {
                                             SDL_Delay(200);
                                             place = minimax(game_board, true, round,
                                                             SDL_min(max_rounds + 1,
-                                                                    (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1));
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         } else {
@@ -832,7 +844,7 @@ int main(void) {
                                             SDL_Delay(200);
                                             place = minimax(game_board, false, round,
                                                             SDL_min(max_rounds + 1,
-                                                                    (DLS_LIMIT+(round / DLS_LIMIT) * DLS_LIMIT) +1));
+                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1));
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         }
@@ -908,7 +920,7 @@ int main(void) {
                     TTF_DestroyText(ROUND_text);
                     ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
                     TTF_GetTextSize(ROUND_text, &text_w, &text_h);
-                    TTF_DrawRendererText(ROUND_text, (float) (SCREEN_WIDTH - text_w) / 2, 75);
+                    TTF_DrawRendererText(ROUND_text, (window_resolution.x - (float) text_w) / 2, 75);
                     TTF_DrawRendererText(RETRY_text, RETRY_rect.x, RETRY_rect.y);
                     TTF_DrawRendererText(MAIN_MENU_text, MAIN_MENU_rect.x, MAIN_MENU_rect.y);
                     SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
@@ -921,25 +933,25 @@ int main(void) {
                     for (int i = 0; i < 9; ++i) {
                         switch (game_board[i].occupied_by) {
                             case -1:
-                                squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
-                                squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
-                                squares[i].w = squares[i].h = PLAYER_SIZE;
-                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                squares[i].x = hot_points[i].x - (float) piece_size / 2;
+                                squares[i].y = hot_points[i].y - (float) piece_size / 2;
+                                squares[i].w = squares[i].h = piece_size;
+                                squares[i].w = squares[i].h = piece_size;
                                 SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
                             case 0:
-                                squares[i].x = hot_points[i].x - (float) EMPTY_SIZE / 2;
-                                squares[i].y = hot_points[i].y - (float) EMPTY_SIZE / 2;
-                                squares[i].w = squares[i].h = EMPTY_SIZE;
+                                squares[i].x = hot_points[i].x - (float) empty_square_size / 2;
+                                squares[i].y = hot_points[i].y - (float) empty_square_size / 2;
+                                squares[i].w = squares[i].h = empty_square_size;
                                 SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0xff, 0xFF);
                                 SDL_RenderTexture(renderer, unoccupied_square, nullptr, &squares[i]);
                                 break;
                             case 1:
-                                squares[i].x = hot_points[i].x - (float) PLAYER_SIZE / 2;
-                                squares[i].y = hot_points[i].y - (float) PLAYER_SIZE / 2;
-                                squares[i].w = squares[i].h = PLAYER_SIZE;
-                                squares[i].w = squares[i].h = PLAYER_SIZE;
+                                squares[i].x = hot_points[i].x - (float) piece_size / 2;
+                                squares[i].y = hot_points[i].y - (float) piece_size / 2;
+                                squares[i].w = squares[i].h = piece_size;
+                                squares[i].w = squares[i].h = piece_size;
                                 SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
@@ -984,6 +996,9 @@ int main(void) {
                         }
                     }
                 }
+                break;
+            case ACHI_SETTINGS: SDL_Log("TODO");
+                quit = true;
                 break;
             case ACHI_ABOUT:
                 TTF_DrawRendererText(ABOUT_TITLE_text, ABOUT_TITLE_x, 0);
