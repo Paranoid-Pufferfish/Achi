@@ -59,6 +59,17 @@ int main(void) {
     float board_dims = window_resolution.y - 300;
     float piece_size = board_dims / 5;
     float empty_square_size = piece_size / 3;
+    int player1_color_hex = 0xd0baff;
+    int player2_color_hex = 0xcfffdd;
+    SDL_Color player1_color = {
+        player1_color_hex / 0x10000, (player1_color_hex % 0x10000) / 0x100, (player1_color_hex % 0x10000) % 0x100,
+        SDL_ALPHA_OPAQUE
+    };
+
+    SDL_Color player2_color = {
+        player2_color_hex / 0x10000, (player2_color_hex % 0x10000) / 0x100, (player2_color_hex % 0x10000) % 0x100,
+        SDL_ALPHA_OPAQUE
+    };
     int dls_limit = 8;
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
@@ -133,7 +144,7 @@ int main(void) {
     TTF_Text *SETTINGS_text = TTF_CreateText(text_engine, font, "4) Settings", 0);
     TTF_Text *ABOUT_text = TTF_CreateText(text_engine, font, "5) About", 0);
     TTF_Text *QUIT_text = TTF_CreateText(text_engine, font, "6) Quit to desktop", 0);
-    TTF_SetTextColorFloat(QUIT_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+    TTF_SetTextColor(QUIT_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
     TTF_Text *TITLE_text = nullptr;
     TTF_Text *INPUT_text = nullptr;
     TTF_Text *ROUND_text = nullptr;
@@ -266,6 +277,42 @@ int main(void) {
         SDL_SetCursor(default_cursor);
         switch (scene) {
             case ACHI_MENU:
+                if (SDL_PointInRectFloat(&mouse, &PVP_rect)) {
+                    SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(renderer, &PVP_rect);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                    SDL_SetCursor(pointing_cursor);
+                }
+                if (SDL_PointInRectFloat(&mouse, &PVA_rect)) {
+                    SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(renderer, &PVA_rect);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                    SDL_SetCursor(pointing_cursor);
+                }
+                if (SDL_PointInRectFloat(&mouse, &AVA_rect)) {
+                    SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(renderer, &AVA_rect);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                    SDL_SetCursor(pointing_cursor);
+                }
+                if (SDL_PointInRectFloat(&mouse, &SETTINGS_rect)) {
+                    SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(renderer, &SETTINGS_rect);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                    SDL_SetCursor(pointing_cursor);
+                }
+                if (SDL_PointInRectFloat(&mouse, &ABOUT_rect)) {
+                    SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(renderer, &ABOUT_rect);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                    SDL_SetCursor(pointing_cursor);
+                }
+                if (SDL_PointInRectFloat(&mouse, &QUIT_rect)) {
+                    SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
+                    SDL_RenderFillRect(renderer, &QUIT_rect);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                    SDL_SetCursor(pointing_cursor);
+                }
                 TTF_DrawRendererText(WELCOME_text, WELCOME_x, 0);
                 TTF_DrawRendererText(PVP_text, PVP_rect.x, PVP_rect.y);
                 TTF_DrawRendererText(PVA_text, PVA_rect.x, PVA_rect.y);
@@ -273,11 +320,7 @@ int main(void) {
                 TTF_DrawRendererText(SETTINGS_text, SETTINGS_rect.x, SETTINGS_rect.y);
                 TTF_DrawRendererText(ABOUT_text, ABOUT_rect.x, ABOUT_rect.y);
                 TTF_DrawRendererText(QUIT_text, QUIT_rect.x, QUIT_rect.y);
-                if (SDL_PointInRectFloat(&mouse, &PVP_rect) ||
-                    SDL_PointInRectFloat(&mouse, &PVA_rect) || SDL_PointInRectFloat(&mouse, &AVA_rect) ||
-                    SDL_PointInRectFloat(&mouse, &SETTINGS_rect) ||
-                    SDL_PointInRectFloat(&mouse, &ABOUT_rect) || SDL_PointInRectFloat(&mouse, &QUIT_rect))
-                    SDL_SetCursor(pointing_cursor);
+
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
                         case SDL_EVENT_WINDOW_RESIZED:
@@ -834,14 +877,14 @@ int main(void) {
                             if (SDL_PointInRectFloat(&mouse, &AIFirst_rect)) {
                                 ai_first = true;
                                 order_selected = true;
-                                TTF_SetTextColorFloat(AIFirst_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(PlayerFirst_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(AIFirst_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(PlayerFirst_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                             }
                             if (SDL_PointInRectFloat(&mouse, &PlayerFirst_rect)) {
                                 ai_first = false;
                                 order_selected = true;
-                                TTF_SetTextColorFloat(PlayerFirst_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(AIFirst_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(PlayerFirst_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(AIFirst_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                             }
                             if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected)
                                 scene = ACHI_GAME_START;
@@ -1029,49 +1072,49 @@ int main(void) {
                             if (SDL_PointInRectFloat(&mouse, &NO_RANDOMNESS_rect)) {
                                 order_selected = true;
                                 randomness_first_ai = NO_RAND;
-                                TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(NO_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                                 strcpy(ai_desc, "Minimax");
                             }
                             if (SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS_rect)) {
                                 order_selected = true;
                                 randomness_first_ai = SOME_RAND;
-                                TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(SOME_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(ALL_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                                 strcpy(ai_desc, "Half-Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS_rect)) {
                                 order_selected = true;
                                 randomness_first_ai = ALL_RAND;
-                                TTF_SetTextColorFloat(ALL_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(ALL_RANDOMNESS_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(SOME_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(NO_RANDOMNESS_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                                 strcpy(ai_desc, "Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &NO_RANDOMNESS2_rect)) {
                                 second_ai_rand_selected = true;
                                 randomness_second_ai = NO_RAND;
-                                TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(NO_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                                 strcpy(ai2_desc, "Minimax");
                             }
                             if (SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS2_rect)) {
                                 second_ai_rand_selected = true;
                                 randomness_second_ai = SOME_RAND;
-                                TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(SOME_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(ALL_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                                 strcpy(ai2_desc, "Half-Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS2_rect)) {
                                 second_ai_rand_selected = true;
                                 randomness_second_ai = ALL_RAND;
-                                TTF_SetTextColorFloat(ALL_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
-                                TTF_SetTextColorFloat(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE_FLOAT);
+                                TTF_SetTextColor(ALL_RANDOMNESS2_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(SOME_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(NO_RANDOMNESS2_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                                 strcpy(ai2_desc, "Random");
                             }
                             if (SDL_PointInRectFloat(&mouse, &NEXT_rect) && order_selected && second_ai_rand_selected) {
@@ -1142,17 +1185,17 @@ int main(void) {
                                     (round % 2 != 0) ? ai_desc : ai2_desc);
                         default: ;
                     }
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
                     ROUND_text = TTF_CreateText(text_engine, font, buf, 0);
                     TTF_GetTextSize(ROUND_text, &text_w, &text_h);
                     TTF_DrawRendererText(ROUND_text, (window_resolution.x - (float) text_w) / 2, 75);
-                    SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE);
                     SDL_RenderRect(renderer, &graphical_board);
                     SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
                     SDL_RenderLine(renderer, hot_points[2].x, hot_points[2].y, hot_points[6].x, hot_points[6].y);
                     SDL_RenderLine(renderer, hot_points[3].x, hot_points[3].y, hot_points[5].x, hot_points[5].y);
                     SDL_RenderLine(renderer, hot_points[0].x, hot_points[0].y, hot_points[8].x, hot_points[8].y);
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
                     for (int i = 0; i < 9; ++i) {
                         switch (game_board[i].occupied_by) {
                             case -1:
@@ -1165,7 +1208,8 @@ int main(void) {
                                     squares[i].y = hot_points[i].y - (float) (piece_size + 20) / 2;
                                 } else
                                     squares[i].w = squares[i].h = piece_size;
-                                SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
+                                SDL_SetTextureColorModFloat(player_occupied, player2_color.r, player2_color.g,
+                                                            player2_color.b);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
                             case 0:
@@ -1198,7 +1242,8 @@ int main(void) {
                                     squares[i].y = hot_points[i].y - (float) (piece_size + 20) / 2;
                                 } else
                                     squares[i].w = squares[i].h = piece_size;
-                                SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
+                                SDL_SetTextureColorModFloat(player_occupied, player1_color.r, player1_color.g,
+                                                            player1_color.b);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
                             default: ;
@@ -1595,7 +1640,7 @@ int main(void) {
                 break;
             case ACHI_END:
                 if (quit != true) {
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
                     if (SDL_PointInRectFloat(&mouse, &RETRY_rect) ||
                         SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect))
                         SDL_SetCursor(pointing_cursor);
@@ -1639,13 +1684,13 @@ int main(void) {
                     TTF_DrawRendererText(ROUND_text, (window_resolution.x - (float) text_w) / 2, 75);
                     TTF_DrawRendererText(RETRY_text, RETRY_rect.x, RETRY_rect.y);
                     TTF_DrawRendererText(MAIN_MENU_text, MAIN_MENU_rect.x, MAIN_MENU_rect.y);
-                    SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_SetRenderDrawColor(renderer, 0xCE, 0xF1, 0xF2,SDL_ALPHA_OPAQUE);
                     SDL_RenderRect(renderer, &graphical_board);
                     SDL_RenderLine(renderer, hot_points[1].x, hot_points[1].y, hot_points[7].x, hot_points[7].y);
                     SDL_RenderLine(renderer, hot_points[2].x, hot_points[2].y, hot_points[6].x, hot_points[6].y);
                     SDL_RenderLine(renderer, hot_points[3].x, hot_points[3].y, hot_points[5].x, hot_points[5].y);
                     SDL_RenderLine(renderer, hot_points[0].x, hot_points[0].y, hot_points[8].x, hot_points[8].y);
-                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE_FLOAT);
+                    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
                     for (int i = 0; i < 9; ++i) {
                         switch (game_board[i].occupied_by) {
                             case -1:
@@ -1653,7 +1698,8 @@ int main(void) {
                                 squares[i].y = hot_points[i].y - (float) piece_size / 2;
                                 squares[i].w = squares[i].h = piece_size;
                                 squares[i].w = squares[i].h = piece_size;
-                                SDL_SetTextureColorModFloat(player_occupied, 0xcf, 0xff, 0xdd);
+                                SDL_SetTextureColorModFloat(player_occupied, player2_color.r, player2_color.g,
+                                                            player2_color.b);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
                             case 0:
@@ -1668,7 +1714,8 @@ int main(void) {
                                 squares[i].y = hot_points[i].y - (float) piece_size / 2;
                                 squares[i].w = squares[i].h = piece_size;
                                 squares[i].w = squares[i].h = piece_size;
-                                SDL_SetTextureColorModFloat(player_occupied, 0xd0, 0xba, 0xff);
+                                SDL_SetTextureColorModFloat(player_occupied, player1_color.r, player1_color.g,
+                                                            player1_color.b);
                                 SDL_RenderTexture(renderer, player_occupied, nullptr, &squares[i]);
                                 break;
                             default: ;
@@ -1682,9 +1729,9 @@ int main(void) {
                                 SDL_GetWindowSize(window, &w, &h);
                                 window_resolution.x = (float) w;
                                 window_resolution.y = (float) h;
-                            board_dims = window_resolution.y - 300;
-                            piece_size = board_dims / 5;
-                            empty_square_size = piece_size / 3;
+                                board_dims = window_resolution.y - 300;
+                                piece_size = board_dims / 5;
+                                empty_square_size = piece_size / 3;
                                 graphical_board = (SDL_FRect){
                                     (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
                                     board_dims, board_dims
