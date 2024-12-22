@@ -4,6 +4,7 @@
 #ifdef SDL_PLATFORM_WINDOWS
 #include <time.h>
 #endif
+#include <ctype.h>
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
@@ -55,6 +56,7 @@ int main(void) {
     SDL_Window *window;
     SDL_Renderer *renderer;
     SDL_FPoint window_resolution = {1366, 768};
+    SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
     float board_dims = window_resolution.y - 300;
     float piece_size = board_dims / 5;
     float empty_square_size = piece_size / 3;
@@ -112,6 +114,7 @@ int main(void) {
     int max_rounds = 0;
     int round = 1;
     int selected = -1;
+    int selected_color = 0;
     int state = 0;
     GAME_MODE game_mode = NONE;
     RANDOMNESS randomness_first_ai = NO_RAND;
@@ -164,6 +167,15 @@ int main(void) {
     TTF_Text *ROUND_text = nullptr;
     TTF_Text *FULLSCREEN_text = TTF_CreateText(text_engine, font, "Toggle Full Screen",
                                                0);
+    TTF_Text *PLAYER1_COLOR_text = TTF_CreateText(text_engine, font, "Player 1 Piece Color",
+                                                  0);
+    TTF_Text *PLAYER2_COLOR_text = TTF_CreateText(text_engine, font, "Player 2 Piece Color",
+                                                  0);
+    TTF_Text *PLAYER1_COLOR_setting_text = TTF_CreateText(text_engine, font, "#d0baff",
+                                                          0);
+
+    TTF_Text *PLAYER2_COLOR_setting_text = TTF_CreateText(text_engine, font, "#cfffdd",
+                                                          0);
     TTF_Text *ROUNDS_text = TTF_CreateText(text_engine, font, "How many rounds do you want to play? (Minimum 6)",
                                            0);
     TTF_Text *NEXT_text = TTF_CreateText(text_engine, font_underlined, "Next", 0);
@@ -261,6 +273,20 @@ int main(void) {
     TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
     SDL_FRect FULLSCREEN_rect = {(window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h};
 
+    TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+    SDL_FRect PLAYER1_COLOR_rect = {(window_resolution.x - (float) text_w) / 2, 300, (float) text_w, (float) text_h};
+    TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+    SDL_FRect PLAYER1_COLOR_setting_rect = {
+        (window_resolution.x - (float) text_w) / 2, 400, (float) text_w, (float) text_h
+    };
+
+    TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+    SDL_FRect PLAYER2_COLOR_rect = {(window_resolution.x - (float) text_w) / 2, 500, (float) text_w, (float) text_h};
+    TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+    SDL_FRect PLAYER2_COLOR_setting_rect = {
+        (window_resolution.x - (float) text_w) / 2, 600, (float) text_w, (float) text_h
+    };
+
     TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
     SDL_FRect AI_ONE_rect = {(window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h};
 
@@ -354,7 +380,7 @@ int main(void) {
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
                             window_resolution.y = (float) h;
-                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                             TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -467,6 +493,19 @@ int main(void) {
                             FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
+                            };
+                            TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+                            PLAYER1_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2,scale_ratio.y *300, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER1_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+                            PLAYER2_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER2_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y *600, (float) text_w, (float) text_h
                             };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
@@ -566,12 +605,12 @@ int main(void) {
                 SDL_StartTextInputWithProperties(window, input_properties_id);
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
-                        case SDL_EVENT_WINDOW_RESIZED: {
+                        case SDL_EVENT_WINDOW_RESIZED:
                             int h, w;
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
                             window_resolution.y = (float) h;
-                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                             TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -686,6 +725,19 @@ int main(void) {
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
                             };
+                            TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+                            PLAYER1_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2,scale_ratio.y *300, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER1_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+                            PLAYER2_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y *500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER2_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y *600, (float) text_w, (float) text_h
+                            };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200, (float) text_w,
@@ -728,8 +780,7 @@ int main(void) {
                                 window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
                                 (float) text_w, (float) text_h
                             };
-                        }
-                        break;
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_TEXT_INPUT:
@@ -800,7 +851,7 @@ int main(void) {
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
                             window_resolution.y = (float) h;
-                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                             TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -913,6 +964,19 @@ int main(void) {
                             FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
+                            };
+                            TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+                            PLAYER1_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2,scale_ratio.y *300, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER1_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+                            PLAYER2_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y *500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER2_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y *600, (float) text_w, (float) text_h
                             };
 
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
@@ -1016,7 +1080,7 @@ int main(void) {
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
                             window_resolution.y = (float) h;
-                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                             TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -1130,6 +1194,19 @@ int main(void) {
                             FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
+                            };
+                            TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+                            PLAYER1_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2,scale_ratio.y *300, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER1_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+                            PLAYER2_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y *500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER2_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y *600, (float) text_w, (float) text_h
                             };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
@@ -1368,7 +1445,7 @@ int main(void) {
                                 SDL_GetWindowSize(window, &w, &h);
                                 window_resolution.x = (float) w;
                                 window_resolution.y = (float) h;
-                                SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                                scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                                 TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                                 TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                                 TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -1858,7 +1935,7 @@ int main(void) {
                                 SDL_GetWindowSize(window, &w, &h);
                                 window_resolution.x = (float) w;
                                 window_resolution.y = (float) h;
-                                SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                                scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                                 TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                                 TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                                 TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -2055,21 +2132,173 @@ int main(void) {
             case ACHI_SETTINGS:
                 TTF_DrawRendererText(SETTINGS_TITLE_text, SETTINGS_TITLE_x, 0);
                 TTF_DrawRendererText(BACK_text, BACK_rect.x, BACK_rect.y);
+                TTF_DrawRendererText(PLAYER1_COLOR_text, PLAYER1_COLOR_rect.x, PLAYER1_COLOR_rect.y);
+                TTF_DrawRendererText(PLAYER1_COLOR_setting_text, PLAYER1_COLOR_setting_rect.x,
+                                     PLAYER1_COLOR_setting_rect.y);
+                TTF_SetTextColor(PLAYER1_COLOR_setting_text, player1_color.r, player1_color.g, player1_color.b,
+                                 SDL_ALPHA_OPAQUE);
+                TTF_DrawRendererText(PLAYER2_COLOR_text, PLAYER2_COLOR_rect.x, PLAYER2_COLOR_rect.y);
+                TTF_DrawRendererText(PLAYER2_COLOR_setting_text, PLAYER2_COLOR_setting_rect.x,
+                                     PLAYER2_COLOR_setting_rect.y);
+                TTF_SetTextColor(PLAYER2_COLOR_setting_text, player2_color.r, player2_color.g, player2_color.b,
+                                 SDL_ALPHA_OPAQUE);
                 if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
                     TTF_SetTextColor(FULLSCREEN_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
                 else
                     TTF_SetTextColor(FULLSCREEN_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
                 TTF_DrawRendererText(FULLSCREEN_text, FULLSCREEN_rect.x, FULLSCREEN_rect.y);
-                if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect))
+                if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect) ||
+                    SDL_PointInRectFloat(&mouse, &PLAYER1_COLOR_rect)|| SDL_PointInRectFloat(&mouse,&PLAYER2_COLOR_rect))
                     SDL_SetCursor(pointing_cursor);
+                if (SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect))
+                    TTF_SetTextFont(FULLSCREEN_text, font_underlined);
+                else
+                    TTF_SetTextFont(FULLSCREEN_text, font);
+                if (selected_color == 1) {
+                    if (INPUT_text != nullptr)
+                        TTF_DestroyText(INPUT_text);
+                    char INPUT_temp_text[15];
+                    sprintf(INPUT_temp_text, "Input: #%x", player1_color_hex);
+                    INPUT_text = TTF_CreateText(text_engine, font, INPUT_temp_text, 0);
+                    TTF_GetTextSize(INPUT_text, &text_w, &text_h);
+                    TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200);
+                } else if (selected_color == 2) {
+                    if (INPUT_text != nullptr)
+                        TTF_DestroyText(INPUT_text);
+                    char INPUT_temp_text[15];
+                    sprintf(INPUT_temp_text, "Input: #%x", player2_color_hex);
+                    INPUT_text = TTF_CreateText(text_engine, font, INPUT_temp_text, 0);
+                    TTF_GetTextSize(INPUT_text, &text_w, &text_h);
+                    TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, 200);
+                }
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
+                        case SDL_EVENT_TEXT_INPUT:
+                            if (((event.text.text[0] >= '0' && event.text.text[0] <= '9') || (
+                                     tolower(event.text.text[0]) >= 'a' && tolower(event.text.text[0] <= 'f'))) &&
+                                strlen(buf) < 6) {
+                                if (selected_color == 1) {
+                                    strcat(buf, event.text.text);
+                                    player1_color_hex = (int) strtol(buf, nullptr, 16);
+                                }
+                                else if (selected_color == 2) {
+                                    strcat(buf, event.text.text);
+                                    player2_color_hex = (int) strtol(buf, nullptr, 16);
+                                }
+                            }
+                            break;
+                        case SDL_EVENT_KEY_DOWN:
+                            if (event.key.key == SDLK_BACKSPACE && strlen(buf) > 0 && SDL_TextInputActive(window)) {
+                                if (selected_color == 1) {
+                                    buf[strlen(buf) - 1] = '\0';
+                                    player1_color_hex = (int) strtol(buf, nullptr, 16);
+                                }
+                                else if (selected_color == 2) {
+                                    buf[strlen(buf) - 1] = '\0';
+                                    player2_color_hex = (int) strtol(buf, nullptr, 16);
+                                }
+                            }
+                            if (event.key.key == SDLK_RETURN && strlen(buf) == 6 && SDL_TextInputActive(window)) {
+                                if (selected_color == 1) {
+                                    SDL_StopTextInput(window);
+                                    player1_color_hex = (int) strtol(buf, nullptr, 16);
+                                    TTF_SetTextColor(PLAYER1_COLOR_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                    player1_color = (SDL_Color){
+                                        player1_color_hex / 0x10000, (player1_color_hex % 0x10000) / 0x100,
+                                        (player1_color_hex % 0x10000) % 0x100,
+                                        SDL_ALPHA_OPAQUE
+                                    };
+                                    buf[0] = '\0';
+                                    TTF_DestroyText(PLAYER1_COLOR_setting_text);
+                                    char player1_color_hex_c[8];
+                                    sprintf(player1_color_hex_c, "#%x", player1_color_hex);
+                                    PLAYER1_COLOR_setting_text = TTF_CreateText(
+                                        text_engine, font, player1_color_hex_c, 0);
+                                    selected_color = 0;
+                                } else if (selected_color == 2) {
+                                    SDL_StopTextInput(window);
+                                    player2_color_hex = (int) strtol(buf, nullptr, 16);
+                                    TTF_SetTextColor(PLAYER2_COLOR_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                    player2_color = (SDL_Color){
+                                        player2_color_hex / 0x10000, (player2_color_hex % 0x10000) / 0x100,
+                                        (player2_color_hex % 0x10000) % 0x100,
+                                        SDL_ALPHA_OPAQUE
+                                    };
+                                    buf[0] = '\0';
+                                    TTF_DestroyText(PLAYER2_COLOR_setting_text);
+                                    char player2_color_hex_c[8];
+                                    sprintf(player2_color_hex_c, "#%x", player2_color_hex);
+                                    PLAYER2_COLOR_setting_text = TTF_CreateText(
+                                        text_engine, font, player2_color_hex_c, 0);
+                                    selected_color = 0;
+                                }
+                            }
+                            if (event.key.key == SDLK_ESCAPE && SDL_TextInputActive(window)) {
+                                if (selected_color == 1) {
+                                    player1_color_hex = 0xd0baff;
+                                    player1_color = (SDL_Color){
+                                        player1_color_hex / 0x10000, (player1_color_hex % 0x10000) / 0x100,
+                                        (player1_color_hex % 0x10000) % 0x100,
+                                        SDL_ALPHA_OPAQUE
+                                    };
+                                    buf[0] = '\0';
+                                    SDL_StopTextInput(window);
+                                    TTF_DestroyText(PLAYER1_COLOR_setting_text);
+                                    char player1_color_hex_c[8];
+                                    sprintf(player1_color_hex_c, "#%x", player1_color_hex);
+                                    PLAYER1_COLOR_setting_text = TTF_CreateText(
+                                        text_engine, font, player1_color_hex_c, 0);
+                                    TTF_SetTextColor(PLAYER1_COLOR_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                    selected_color = 0;
+                                } else if (selected_color == 2) {
+                                    player2_color_hex = 0xcfffdd;
+                                    player2_color = (SDL_Color){
+                                        player2_color_hex / 0x10000, (player2_color_hex % 0x10000) / 0x100,
+                                        (player2_color_hex % 0x10000) % 0x100,
+                                        SDL_ALPHA_OPAQUE
+                                    };
+                                    buf[0] = '\0';
+                                    SDL_StopTextInput(window);
+                                    TTF_DestroyText(PLAYER1_COLOR_setting_text);
+                                    char player2_color_hex_c[8];
+                                    sprintf(player2_color_hex_c, "#%x", player2_color_hex);
+                                    PLAYER2_COLOR_setting_text = TTF_CreateText(
+                                        text_engine, font, player2_color_hex_c, 0);
+                                    TTF_SetTextColor(PLAYER2_COLOR_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                    selected_color = 0;
+                                }
+                            }
+                            break;
+                        case SDL_EVENT_MOUSE_BUTTON_UP:
+                            if (SDL_PointInRectFloat(&mouse, &BACK_rect)) {
+                                scene = ACHI_MENU;
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect)) {
+                                SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &PLAYER1_COLOR_rect) && selected_color == 0) {
+                                SDL_StopTextInput(window);
+                                selected_color = 1;
+                                TTF_SetTextColor(PLAYER1_COLOR_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(PLAYER2_COLOR_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                SDL_StartTextInput(window);
+                                sprintf(buf, "%x", player1_color_hex);
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &PLAYER2_COLOR_rect) && selected_color == 0) {
+                                SDL_StopTextInput(window);
+                                selected_color = 2;
+                                TTF_SetTextColor(PLAYER2_COLOR_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                                TTF_SetTextColor(PLAYER1_COLOR_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                                SDL_StartTextInput(window);
+                                sprintf(buf, "%x", player2_color_hex);
+                            }
+                            break;
                         case SDL_EVENT_WINDOW_RESIZED:
                             int h, w;
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
                             window_resolution.y = (float) h;
-                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                             TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -2183,6 +2412,19 @@ int main(void) {
                             FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
+                            };
+                            TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+                            PLAYER1_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2,scale_ratio.y *300, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER1_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+                            PLAYER2_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y *500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER2_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y *600, (float) text_w, (float) text_h
                             };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
@@ -2230,14 +2472,6 @@ int main(void) {
                             break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
-                        case SDL_EVENT_MOUSE_BUTTON_UP:
-                            if (SDL_PointInRectFloat(&mouse, &BACK_rect)) {
-                                scene = ACHI_MENU;
-                            }
-                            if (SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect)) {
-                                SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));
-                            }
-                            break;
                         default: ;
                     }
                 }
@@ -2255,7 +2489,7 @@ int main(void) {
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
                             window_resolution.y = (float) h;
-                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            scale_ratio = (SDL_FPoint){window_resolution.x / 1366, window_resolution.y / 768};
                             TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
                             TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
@@ -2369,6 +2603,19 @@ int main(void) {
                             FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
+                            };
+                            TTF_GetTextSize(PLAYER1_COLOR_text, &text_w, &text_h);
+                            PLAYER1_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2,scale_ratio.y *300, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER1_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER1_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w, (float) text_h
+                            };
+
+                            TTF_GetTextSize(PLAYER2_COLOR_text, &text_w, &text_h);
+                            PLAYER2_COLOR_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y *500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(PLAYER2_COLOR_setting_text, &text_w, &text_h);
+                            PLAYER2_COLOR_setting_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y *600, (float) text_w, (float) text_h
                             };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
