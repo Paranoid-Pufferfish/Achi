@@ -91,8 +91,21 @@ int main(void) {
         SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
     }
+    SDL_Texture *next_arrow = IMG_LoadTexture(renderer, "../media/next_arrow.svg");
+
+    if (next_arrow == nullptr) {
+        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
+        return 1;
+    }
+    SDL_Texture *previous_arrow = IMG_LoadTexture(renderer, "../media/previous_arrow.svg");
+    if (previous_arrow == nullptr) {
+        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
+        return 1;
+    }
     int number_of_preferred_locales;
     SDL_Locale **preferred_locales = SDL_GetPreferredLocales(&number_of_preferred_locales);
+    char *languages[3] = {"Foo", "Bar", "Baz"};
+    int selected_language = 0;
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     bool skip_cycle = false;
@@ -149,6 +162,8 @@ int main(void) {
     TTF_Text *TITLE_text = nullptr;
     TTF_Text *INPUT_text = nullptr;
     TTF_Text *ROUND_text = nullptr;
+    TTF_Text *FULLSCREEN_text = TTF_CreateText(text_engine, font, "Toggle Full Screen",
+                                               0);
     TTF_Text *ROUNDS_text = TTF_CreateText(text_engine, font, "How many rounds do you want to play? (Minimum 6)",
                                            0);
     TTF_Text *NEXT_text = TTF_CreateText(text_engine, font_underlined, "Next", 0);
@@ -172,6 +187,7 @@ int main(void) {
     TTF_Text *RETRY_text = TTF_CreateText(text_engine, font_underlined, "Play Again", 0);
     TTF_Text *MAIN_MENU_text = TTF_CreateText(text_engine, font_underlined, "Main Menu", 0);
     TTF_Text *ABOUT_TITLE_text = TTF_CreateText(text_engine, font, "About the project", 0);
+    TTF_Text *SETTINGS_TITLE_text = TTF_CreateText(text_engine, font, "Settings", 0);
     SDL_Surface *CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
                                                                        (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
                                                                        0);
@@ -188,10 +204,16 @@ int main(void) {
 
     TTF_GetTextSize(ORDER_text, &text_w, &text_h);
     float ORDER_x = (window_resolution.x - (float) text_w) / 2;
+
     TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
     float ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+    TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+    float SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
     TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
     float ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+
     TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
     float AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
     float AI_THINKING_y = (window_resolution.y - (float) text_h);
@@ -235,6 +257,9 @@ int main(void) {
 
     TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
     SDL_FRect ENTROPY_rect = {(window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h};
+
+    TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+    SDL_FRect FULLSCREEN_rect = {(window_resolution.x - (float) text_w) / 2, 100, (float) text_w, (float) text_h};
 
     TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
     SDL_FRect AI_ONE_rect = {(window_resolution.x - (float) text_w) / 2, 200, (float) text_w, (float) text_h};
@@ -375,6 +400,8 @@ int main(void) {
                             ORDER_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                             ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                            SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                             ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -433,6 +460,11 @@ int main(void) {
                             };
                             TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
                             ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+                            FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
                             };
@@ -585,6 +617,9 @@ int main(void) {
                             ORDER_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                             ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                            SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                             ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -643,6 +678,11 @@ int main(void) {
                             };
                             TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
                             ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+                            FULLSCREEN_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
                             };
@@ -806,6 +846,8 @@ int main(void) {
                             ORDER_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                             ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                            SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                             ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -867,6 +909,12 @@ int main(void) {
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
                             };
+                            TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+                            FULLSCREEN_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
+
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200, (float) text_w,
@@ -948,7 +996,8 @@ int main(void) {
                     SDL_PointInRectFloat(&mouse, &AIFirst_rect))
                     SDL_SetCursor(pointing_cursor);
                 break;
-            case ACHI_PREGAME_AVA: TTF_GetTextSize(TITLE_text, &text_w, &text_h);
+            case ACHI_PREGAME_AVA:
+                TTF_GetTextSize(TITLE_text, &text_w, &text_h);
                 TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
                 TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
                 TTF_DrawRendererText(ENTROPY_text, ENTROPY_rect.x, ENTROPY_rect.y);
@@ -962,7 +1011,7 @@ int main(void) {
                 TTF_DrawRendererText(ALL_RANDOMNESS2_text, ALL_RANDOMNESS2_rect.x, ALL_RANDOMNESS2_rect.y);
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
-                        case SDL_EVENT_WINDOW_RESIZED: {
+                        case SDL_EVENT_WINDOW_RESIZED:
                             int h, w;
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
@@ -1013,6 +1062,9 @@ int main(void) {
                             ORDER_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                             ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                            SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                             ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -1074,6 +1126,11 @@ int main(void) {
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
                             };
+                            TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+                            FULLSCREEN_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200, (float) text_w,
@@ -1116,8 +1173,7 @@ int main(void) {
                                 window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
                                 (float) text_w, (float) text_h
                             };
-                        }
-                        break;
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
@@ -1307,7 +1363,7 @@ int main(void) {
 
                     while (SDL_PollEvent(&event)) {
                         switch (event.type) {
-                            case SDL_EVENT_WINDOW_RESIZED: {
+                            case SDL_EVENT_WINDOW_RESIZED:
                                 int h, w;
                                 SDL_GetWindowSize(window, &w, &h);
                                 window_resolution.x = (float) w;
@@ -1358,6 +1414,9 @@ int main(void) {
                                 ORDER_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                                 ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+                                TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                                SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                                 ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -1465,12 +1524,11 @@ int main(void) {
                                     window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
                                     (float) text_w, (float) text_h
                                 };
-                            }
-                            break;
+
+                                break;
                             case SDL_EVENT_QUIT: quit = true;
                                 break;
                             case SDL_EVENT_MOUSE_BUTTON_UP:
-
                                 if (game_mode == GAME_MODE_PVP) {
                                     if (round <= 6) {
                                         for (int i = 0; i < 9; ++i) {
@@ -1795,7 +1853,7 @@ int main(void) {
 
                     while (SDL_PollEvent(&event)) {
                         switch (event.type) {
-                            case SDL_EVENT_WINDOW_RESIZED: {
+                            case SDL_EVENT_WINDOW_RESIZED:
                                 int h, w;
                                 SDL_GetWindowSize(window, &w, &h);
                                 window_resolution.x = (float) w;
@@ -1846,6 +1904,9 @@ int main(void) {
                                 ORDER_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                                 ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+                                TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                                SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                                 ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -1953,8 +2014,8 @@ int main(void) {
                                     window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
                                     (float) text_w, (float) text_h
                                 };
-                            }
-                            break;
+
+                                break;
                             case SDL_EVENT_QUIT: SDL_Log("Quitting");
                                 quit = true;
                                 break;
@@ -1991,18 +2052,19 @@ int main(void) {
                     }
                 }
                 break;
-            case ACHI_SETTINGS: SDL_Log("TODO");
-                quit = true;
-                break;
-            case ACHI_ABOUT:
-                TTF_DrawRendererText(ABOUT_TITLE_text, ABOUT_TITLE_x, 0);
+            case ACHI_SETTINGS:
+                TTF_DrawRendererText(SETTINGS_TITLE_text, SETTINGS_TITLE_x, 0);
                 TTF_DrawRendererText(BACK_text, BACK_rect.x, BACK_rect.y);
-                SDL_RenderTexture(renderer, CREDITS_text_texture, nullptr, &CREDITS_rect);
-                if (SDL_PointInRectFloat(&mouse, &BACK_rect))
+                if (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN)
+                    TTF_SetTextColor(FULLSCREEN_text, 0xFF, 0x00, 0x00,SDL_ALPHA_OPAQUE);
+                else
+                    TTF_SetTextColor(FULLSCREEN_text, 0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE);
+                TTF_DrawRendererText(FULLSCREEN_text, FULLSCREEN_rect.x, FULLSCREEN_rect.y);
+                if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect))
                     SDL_SetCursor(pointing_cursor);
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
-                        case SDL_EVENT_WINDOW_RESIZED: {
+                        case SDL_EVENT_WINDOW_RESIZED:
                             int h, w;
                             SDL_GetWindowSize(window, &w, &h);
                             window_resolution.x = (float) w;
@@ -2053,6 +2115,9 @@ int main(void) {
                             ORDER_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
                             ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                            SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
                             ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
@@ -2114,6 +2179,11 @@ int main(void) {
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
                                 (float) text_h
                             };
+                            TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+                            FULLSCREEN_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
                             TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
                             AI_ONE_rect = (SDL_FRect){
                                 (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200, (float) text_w,
@@ -2156,8 +2226,194 @@ int main(void) {
                                 window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
                                 (float) text_w, (float) text_h
                             };
-                        }
-                        break;
+
+                            break;
+                        case SDL_EVENT_QUIT: quit = true;
+                            break;
+                        case SDL_EVENT_MOUSE_BUTTON_UP:
+                            if (SDL_PointInRectFloat(&mouse, &BACK_rect)) {
+                                scene = ACHI_MENU;
+                            }
+                            if (SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect)) {
+                                SDL_SetWindowFullscreen(window, !(SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN));
+                            }
+                            break;
+                        default: ;
+                    }
+                }
+                break;
+            case ACHI_ABOUT:
+                TTF_DrawRendererText(ABOUT_TITLE_text, ABOUT_TITLE_x, 0);
+                TTF_DrawRendererText(BACK_text, BACK_rect.x, BACK_rect.y);
+                SDL_RenderTexture(renderer, CREDITS_text_texture, nullptr, &CREDITS_rect);
+                if (SDL_PointInRectFloat(&mouse, &BACK_rect))
+                    SDL_SetCursor(pointing_cursor);
+                while (SDL_PollEvent(&event)) {
+                    switch (event.type) {
+                        case SDL_EVENT_WINDOW_RESIZED:
+                            int h, w;
+                            SDL_GetWindowSize(window, &w, &h);
+                            window_resolution.x = (float) w;
+                            window_resolution.y = (float) h;
+                            SDL_FPoint scale_ratio = {window_resolution.x / 1366, window_resolution.y / 768};
+                            TTF_SetFontSize(font,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
+                            TTF_SetFontSize(font_underlined,SDL_min(scale_ratio.x, scale_ratio.y) * 30);
+                            TTF_SetFontSize(font_credits,SDL_min(scale_ratio.x, scale_ratio.y) * 23);
+                            board_dims = window_resolution.y - 300;
+                            piece_size = board_dims / 5;
+                            empty_square_size = piece_size / 3;
+                            graphical_board = (SDL_FRect){
+                                (window_resolution.x - board_dims) / 2, (window_resolution.y - board_dims) / 2 + 70,
+                                board_dims, board_dims
+                            };
+                            hot_points[0] = (SDL_FPoint){graphical_board.x, graphical_board.y};
+                            hot_points[1] = (SDL_FPoint){graphical_board.x + board_dims / 2, graphical_board.y};
+                            hot_points[2] = (SDL_FPoint){graphical_board.x + board_dims, graphical_board.y};
+                            hot_points[3] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims / 2};
+                            hot_points[4] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[5] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims / 2
+                            };
+                            hot_points[6] = (SDL_FPoint){graphical_board.x, graphical_board.y + board_dims};
+                            hot_points[7] = (SDL_FPoint){
+                                graphical_board.x + board_dims / 2, graphical_board.y + board_dims
+                            };
+                            hot_points[8] = (SDL_FPoint){
+                                graphical_board.x + board_dims, graphical_board.y + board_dims
+                            };
+                            SDL_DestroyTexture(CREDITS_text_texture);
+                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
+                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
+                                0);
+                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
+                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
+                            CREDITS_rect = (SDL_FRect){
+                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
+                            };
+                            SDL_DestroySurface(CREDITS_text_surface);
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
+                            WELCOME_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ORDER_text, &text_w, &text_h);
+                            ORDER_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ABOUT_TITLE_text, &text_w, &text_h);
+                            ABOUT_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+
+                            TTF_GetTextSize(SETTINGS_TITLE_text, &text_w, &text_h);
+                            SETTINGS_TITLE_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(ROUNDS_text, &text_w, &text_h);
+                            ROUNDS_x = (window_resolution.x - (float) text_w) / 2;
+                            TTF_GetTextSize(AI_IS_THINKING_text, &text_w, &text_h);
+                            AI_THINKING_x = (window_resolution.x - (float) text_w) / 2;
+                            AI_THINKING_y = (window_resolution.y - (float) text_h);
+                            TTF_GetTextSize(BACK_text, &text_w, &text_h);
+                            BACK_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h), (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(RETRY_text, &text_w, &text_h);
+                            RETRY_rect = (SDL_FRect){
+                                0, (window_resolution.y - (float) text_h) / 2, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(MAIN_MENU_text, &text_w, &text_h);
+                            MAIN_MENU_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), (window_resolution.y - (float) text_h) / 2,
+                                (float) text_w,
+                                (float) text_h
+                            };
+                            menu_y = scale_ratio.y * 50;
+                            menu_x = 0;
+
+                            TTF_GetTextSize(PVP_text, &text_w, &text_h);
+                            PVP_rect = (SDL_FRect){
+                                menu_x, menu_y += scale_ratio.y * 100, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(PVA_text, &text_w, &text_h);
+                            PVA_rect = (SDL_FRect){
+                                menu_x, menu_y += scale_ratio.y * 100, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(AVA_text, &text_w, &text_h);
+                            AVA_rect = (SDL_FRect){
+                                menu_x, menu_y += scale_ratio.y * 100, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(SETTINGS_text, &text_w, &text_h);
+                            SETTINGS_rect = (SDL_FRect){
+                                menu_x, menu_y += scale_ratio.y * 100, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(ABOUT_text, &text_w, &text_h);
+                            ABOUT_rect = (SDL_FRect){
+                                menu_x, menu_y += scale_ratio.y * 100, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(QUIT_text, &text_w, &text_h);
+                            QUIT_rect = (SDL_FRect){
+                                menu_x, menu_y += scale_ratio.y * 100, (float) text_w, (float) text_h
+                            };
+                            TTF_GetTextSize(AIFirst_text, &text_w, &text_h);
+                            AIFirst_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 4, scale_ratio.y * 400, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(PlayerFirst_text, &text_w, &text_h);
+                            PlayerFirst_rect = (SDL_FRect){
+                                3 * (window_resolution.x - (float) text_w) / 4, scale_ratio.y * 400, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(ENTROPY_text, &text_w, &text_h);
+                            ENTROPY_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(FULLSCREEN_text, &text_w, &text_h);
+                            FULLSCREEN_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 100, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(AI_ONE_text, &text_w, &text_h);
+                            AI_ONE_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(AI_TWO_text, &text_w, &text_h);
+                            AI_TWO_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 400, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(NO_RANDOMNESS_text, &text_w, &text_h);
+                            NO_RANDOMNESS_rect = (SDL_FRect){0, scale_ratio.y * 300, (float) text_w, (float) text_h};
+
+                            TTF_GetTextSize(SOME_RANDOMNESS_text, &text_w, &text_h);
+                            SOME_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 300, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(ALL_RANDOMNESS_text, &text_w, &text_h);
+                            ALL_RANDOMNESS_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), scale_ratio.y * 300, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(NO_RANDOMNESS2_text, &text_w, &text_h);
+                            NO_RANDOMNESS2_rect = (SDL_FRect){0, scale_ratio.y * 500, (float) text_w, (float) text_h};
+                            TTF_GetTextSize(SOME_RANDOMNESS2_text, &text_w, &text_h);
+                            SOME_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 500, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(ALL_RANDOMNESS2_text, &text_w, &text_h);
+                            ALL_RANDOMNESS2_rect = (SDL_FRect){
+                                (window_resolution.x - (float) text_w), scale_ratio.y * 500, (float) text_w,
+                                (float) text_h
+                            };
+                            TTF_GetTextSize(NEXT_text, &text_w, &text_h);
+                            TTF_DrawRendererText(NEXT_text, window_resolution.x - (float) text_w,
+                                                 window_resolution.y - (float) text_h);
+                            NEXT_rect = (SDL_FRect){
+                                window_resolution.x - (float) text_w, window_resolution.y - (float) text_h,
+                                (float) text_w, (float) text_h
+                            };
+
+                            break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_MOUSE_BUTTON_UP:
