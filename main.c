@@ -2158,7 +2158,7 @@ int main(void) {
                     if (INPUT_text != nullptr)
                         TTF_DestroyText(INPUT_text);
                     char INPUT_temp_text[15];
-                    sprintf(INPUT_temp_text, "Input: #%x", player1_color_hex);
+                    sprintf(INPUT_temp_text, "Input: #%06x", player1_color_hex);
                     INPUT_text = TTF_CreateText(text_engine, font, INPUT_temp_text, 0);
                     TTF_GetTextSize(INPUT_text, &text_w, &text_h);
                     TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200);
@@ -2166,10 +2166,10 @@ int main(void) {
                     if (INPUT_text != nullptr)
                         TTF_DestroyText(INPUT_text);
                     char INPUT_temp_text[15];
-                    sprintf(INPUT_temp_text, "Input: #%x", player2_color_hex);
+                    sprintf(INPUT_temp_text, "Input: #%06x", player2_color_hex);
                     INPUT_text = TTF_CreateText(text_engine, font, INPUT_temp_text, 0);
                     TTF_GetTextSize(INPUT_text, &text_w, &text_h);
-                    TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, 200);
+                    TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 200);
                 }
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
@@ -2211,7 +2211,7 @@ int main(void) {
                                     buf[0] = '\0';
                                     TTF_DestroyText(PLAYER1_COLOR_setting_text);
                                     char player1_color_hex_c[8];
-                                    sprintf(player1_color_hex_c, "#%x", player1_color_hex);
+                                    sprintf(player1_color_hex_c, "#%06x", player1_color_hex);
                                     PLAYER1_COLOR_setting_text = TTF_CreateText(
                                         text_engine, font, player1_color_hex_c, 0);
                                     selected_color = 0;
@@ -2227,7 +2227,7 @@ int main(void) {
                                     buf[0] = '\0';
                                     TTF_DestroyText(PLAYER2_COLOR_setting_text);
                                     char player2_color_hex_c[8];
-                                    sprintf(player2_color_hex_c, "#%x", player2_color_hex);
+                                    sprintf(player2_color_hex_c, "#%06x", player2_color_hex);
                                     PLAYER2_COLOR_setting_text = TTF_CreateText(
                                         text_engine, font, player2_color_hex_c, 0);
                                     selected_color = 0;

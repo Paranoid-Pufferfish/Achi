@@ -4,7 +4,7 @@ set(STATIC_PROJECT OFF)
 
 set(CMAKE_C_STANDARD 23)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -g -O1")
 if(STATIC_PROJECT)
     set(SDL_STATIC ON)
     set(SDL_TEST OFF)
