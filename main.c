@@ -246,6 +246,7 @@ int main(void) {
         SDL_ALPHA_OPAQUE
     };
     int dls_limit = 8;
+    int entropy = 10;
     if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
         return 1;
@@ -278,10 +279,6 @@ int main(void) {
         SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
     }
-    [[maybe_unused]] int number_of_preferred_locales;
-    /*SDL_Locale **preferred_locales = SDL_GetPreferredLocales(&number_of_preferred_locales);
-    char *languages[3] = {"Foo", "Bar", "Baz"};
-    int selected_language = 0;*/
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     bool skip_cycle = false;
@@ -1094,15 +1091,16 @@ int main(void) {
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     }
-                                    SDL_Log("Minimax Move");
                                     break;
                                 case SOME_RAND:
 #ifdef _SDL_PLATFORM_WINDOWS
-                                    if (rand() % 11 == 2) {
+                                    if (rand() % (entropy+1) == 2) {
+                                        SDL_Log("Round %d: Random Move", round);
                                         do {
                                             placement = (int) rand() % 10;
 #else
-                                    if (arc4random_uniform(10) == 2) {
+                                    if (arc4random_uniform(entropy) == 2) {
+                                        SDL_Log("Round %d: Random Move", round);
                                         do {
                                             placement = (int) arc4random_uniform(9);
 #endif
@@ -1112,6 +1110,7 @@ int main(void) {
                                         } while (temp_board == nullptr);
                                         round++;
                                     } else {
+                                        SDL_Log("Round %d: Minimax Move", round);
                                         if (turn == 1) {
                                             TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                             SDL_RenderPresent(renderer);
@@ -1141,7 +1140,6 @@ int main(void) {
 #endif
                                         temp_board =
                                                 next_board(game_board, placement, round);
-                                        SDL_Log("Random Move");
                                     } while (temp_board == nullptr);
                                     round++;
                                     SDL_Delay(200);

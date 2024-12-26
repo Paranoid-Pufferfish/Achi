@@ -69,3 +69,5 @@ cmake-build-*/
 
 ### IDEA
 .idea
+Release.tar.gz
+Release/
