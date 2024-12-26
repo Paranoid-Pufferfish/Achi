@@ -104,10 +104,10 @@ int main(void) {
         SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
     }
-    int number_of_preferred_locales;
-    SDL_Locale **preferred_locales = SDL_GetPreferredLocales(&number_of_preferred_locales);
+    [[maybe_unused]] int number_of_preferred_locales;
+    /*SDL_Locale **preferred_locales = SDL_GetPreferredLocales(&number_of_preferred_locales);
     char *languages[3] = {"Foo", "Bar", "Baz"};
-    int selected_language = 0;
+    int selected_language = 0;*/
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     bool skip_cycle = false;
@@ -200,17 +200,14 @@ int main(void) {
     TTF_Text *MAIN_MENU_text = TTF_CreateText(text_engine, font_underlined, "Main Menu", 0);
     TTF_Text *ABOUT_TITLE_text = TTF_CreateText(text_engine, font, "About the project", 0);
     TTF_Text *SETTINGS_TITLE_text = TTF_CreateText(text_engine, font, "Settings", 0);
-    SDL_Surface *CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                                                       (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                                                       0);
-    SDL_Texture *CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-    float CREDITS_w;
-    float CREDITS_h;
-    SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-    SDL_FRect CREDITS_rect = {(window_resolution.x - CREDITS_w) / 2, 75, CREDITS_w, CREDITS_h};
-    SDL_DestroySurface(CREDITS_text_surface);
+    TTF_Text *CREDITS_text = TTF_CreateText(text_engine,font_credits,CREDITS,0);
+
     int text_w = 0;
     int text_h = 0;
+
+    TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+    SDL_FRect CREDITS_rect = {(window_resolution.x - (float) text_w) / 2, 75, (float) text_w, (float) text_h};
+
     TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
     float WELCOME_x = (window_resolution.x - (float) text_w) / 2;
 
@@ -408,18 +405,10 @@ int main(void) {
                             hot_points[8] = (SDL_FPoint){
                                 graphical_board.x + board_dims, graphical_board.y + board_dims
                             };
-                            SDL_DestroyTexture(CREDITS_text_texture);
-                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                0);
-                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                            CREDITS_rect = (SDL_FRect){
-                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                            };
-                            SDL_DestroySurface(CREDITS_text_surface);
                             text_w = 0;
                             text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                             TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                             WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -553,8 +542,6 @@ int main(void) {
                         break;
                         case SDL_EVENT_QUIT: quit = true;
                             break;
-                        case SDL_EVENT_GAMEPAD_BUTTON_UP:
-                            SDL_Log("BUTTON A PRESSED");
                         case SDL_EVENT_MOUSE_BUTTON_UP:
                             if (event.button.button == SDL_BUTTON_LEFT) {
                                 if (SDL_PointInRectFloat(&mouse, &PVP_rect)) {
@@ -638,18 +625,10 @@ int main(void) {
                             hot_points[8] = (SDL_FPoint){
                                 graphical_board.x + board_dims, graphical_board.y + board_dims
                             };
-                            SDL_DestroyTexture(CREDITS_text_texture);
-                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                0);
-                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                            CREDITS_rect = (SDL_FRect){
-                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                            };
-                            SDL_DestroySurface(CREDITS_text_surface);
                             text_w = 0;
                             text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                             TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                             WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -879,18 +858,10 @@ int main(void) {
                             hot_points[8] = (SDL_FPoint){
                                 graphical_board.x + board_dims, graphical_board.y + board_dims
                             };
-                            SDL_DestroyTexture(CREDITS_text_texture);
-                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                0);
-                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                            CREDITS_rect = (SDL_FRect){
-                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                            };
-                            SDL_DestroySurface(CREDITS_text_surface);
                             text_w = 0;
                             text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                             TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                             WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -1108,18 +1079,10 @@ int main(void) {
                             hot_points[8] = (SDL_FPoint){
                                 graphical_board.x + board_dims, graphical_board.y + board_dims
                             };
-                            SDL_DestroyTexture(CREDITS_text_texture);
-                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                0);
-                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                            CREDITS_rect = (SDL_FRect){
-                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                            };
-                            SDL_DestroySurface(CREDITS_text_surface);
                             text_w = 0;
                             text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                             TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                             WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -1473,18 +1436,10 @@ int main(void) {
                                 hot_points[8] = (SDL_FPoint){
                                     graphical_board.x + board_dims, graphical_board.y + board_dims
                                 };
-                                SDL_DestroyTexture(CREDITS_text_texture);
-                                CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                    (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                    0);
-                                CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                                SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                                CREDITS_rect = (SDL_FRect){
-                                    (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                                };
-                                SDL_DestroySurface(CREDITS_text_surface);
-                                text_w = 0;
-                                text_h = 0;
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                                 TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                                 WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -1963,18 +1918,10 @@ int main(void) {
                                 hot_points[8] = (SDL_FPoint){
                                     graphical_board.x + board_dims, graphical_board.y + board_dims
                                 };
-                                SDL_DestroyTexture(CREDITS_text_texture);
-                                CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                    (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                    0);
-                                CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                                SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                                CREDITS_rect = (SDL_FRect){
-                                    (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                                };
-                                SDL_DestroySurface(CREDITS_text_surface);
-                                text_w = 0;
-                                text_h = 0;
+                            text_w = 0;
+                            text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                                 TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                                 WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                                 TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -2326,18 +2273,10 @@ int main(void) {
                             hot_points[8] = (SDL_FPoint){
                                 graphical_board.x + board_dims, graphical_board.y + board_dims
                             };
-                            SDL_DestroyTexture(CREDITS_text_texture);
-                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                0);
-                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                            CREDITS_rect = (SDL_FRect){
-                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                            };
-                            SDL_DestroySurface(CREDITS_text_surface);
                             text_w = 0;
                             text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                             TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                             WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ORDER_text, &text_w, &text_h);
@@ -2479,7 +2418,7 @@ int main(void) {
             case ACHI_ABOUT:
                 TTF_DrawRendererText(ABOUT_TITLE_text, ABOUT_TITLE_x, 0);
                 TTF_DrawRendererText(BACK_text, BACK_rect.x, BACK_rect.y);
-                SDL_RenderTexture(renderer, CREDITS_text_texture, nullptr, &CREDITS_rect);
+                TTF_DrawRendererText(CREDITS_text,CREDITS_rect.x,CREDITS_rect.y);
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect))
                     SDL_SetCursor(pointing_cursor);
                 while (SDL_PollEvent(&event)) {
@@ -2517,18 +2456,10 @@ int main(void) {
                             hot_points[8] = (SDL_FPoint){
                                 graphical_board.x + board_dims, graphical_board.y + board_dims
                             };
-                            SDL_DestroyTexture(CREDITS_text_texture);
-                            CREDITS_text_surface = TTF_RenderText_Blended_Wrapped(font_credits, CREDITS, 0,
-                                (SDL_Color){0xFF, 0xFF, 0xFF,SDL_ALPHA_OPAQUE},
-                                0);
-                            CREDITS_text_texture = SDL_CreateTextureFromSurface(renderer, CREDITS_text_surface);
-                            SDL_GetTextureSize(CREDITS_text_texture, &CREDITS_w, &CREDITS_h);
-                            CREDITS_rect = (SDL_FRect){
-                                (window_resolution.x - CREDITS_w) / 2, scale_ratio.y * 75, CREDITS_w, CREDITS_h
-                            };
-                            SDL_DestroySurface(CREDITS_text_surface);
                             text_w = 0;
                             text_h = 0;
+                            TTF_GetTextSize(CREDITS_text,&text_w,&text_h);
+                            CREDITS_rect = (SDL_FRect){(window_resolution.x - (float) text_w) / 2, scale_ratio.y * 75, (float) text_w, (float) text_h};
                             TTF_GetTextSize(WELCOME_text, &text_w, &text_h);
                             WELCOME_x = (window_resolution.x - (float) text_w) / 2;
                             TTF_GetTextSize(ORDER_text, &text_w, &text_h);
