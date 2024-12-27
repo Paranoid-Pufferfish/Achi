@@ -10,6 +10,7 @@
 
 #include "game_board.h"
 #include "decision_tree.h"
+#define THREADS 4
 #define CREDITS "Authors:\n- MOUHOUS Mathya (G3)\n- AIT MEDDOUR Fouâd-Eddine (G1)\nSoftware Used:\n- SDL3 master (https://github.com/libsdl-org/SDL)\n- SDL3_ttf master (https://github.com/libsdl-org/SDL_ttf)\n- SDL3_image master (https://github.com/libsdl-org/SDL_image)\n- CMake 3.30.6 (https://gitlab.kitware.com/cmake/cmake)\nFont : Acme 9 Regular\nTested On :\n- Ubuntu 24.10\n- Gentoo amd64 Stable\n- Windows 10 KVM/QEMU\n- Windows 11"
 #define RESIZE_HANDLER \
 int h, w;\
@@ -1051,9 +1052,9 @@ int main(void) {
                                 TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                 SDL_RenderPresent(renderer);
                                 SDL_Delay(200);
-                                pair place = minimax(game_board, ai_first, round,
+                                pair place = minimax_mth(game_board, ai_first, round,
                                                      SDL_min(max_rounds + 1,
-                                                             (dls_limit +(round / dls_limit) * dls_limit) +1));
+                                                             (dls_limit +(round / dls_limit) * dls_limit) +1),THREADS);
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
                                 free(board_cleaner);
@@ -1076,18 +1077,18 @@ int main(void) {
                                         TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                         SDL_RenderPresent(renderer);
                                         SDL_Delay(200);
-                                        place = minimax(game_board, true, round,
+                                        place = minimax_mth(game_board, true, round,
                                                         SDL_min(max_rounds + 1,
-                                                                (dls_limit+(round / dls_limit) * dls_limit) +1));
+                                                                (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     } else {
                                         TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                         SDL_RenderPresent(renderer);
                                         SDL_Delay(200);
-                                        place = minimax(game_board, false, round,
+                                        place = minimax_mth(game_board, false, round,
                                                         SDL_min(max_rounds + 1,
-                                                                (dls_limit+(round / dls_limit) * dls_limit) +1));
+                                                                (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     }
@@ -1115,18 +1116,18 @@ int main(void) {
                                             TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                             SDL_RenderPresent(renderer);
                                             SDL_Delay(200);
-                                            place = minimax(game_board, true, round,
+                                            place = minimax_mth(game_board, true, round,
                                                             SDL_min(max_rounds + 1,
-                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1));
+                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         } else {
                                             TTF_DrawRendererText(AI_IS_THINKING_text, AI_THINKING_x, AI_THINKING_y);
                                             SDL_RenderPresent(renderer);
                                             SDL_Delay(200);
-                                            place = minimax(game_board, false, round,
+                                            place = minimax_mth(game_board, false, round,
                                                             SDL_min(max_rounds + 1,
-                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1));
+                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         }
