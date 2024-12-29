@@ -487,9 +487,9 @@ int main(void) {
     SDL_FPoint mouse;
     SDL_PropertiesID input_properties_id = SDL_CreateProperties();
     SDL_SetNumberProperty(input_properties_id,SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_NUMBER);
+    float x_pos = 0;
+    float y_pos = 0;
     while (!quit) {
-        float x_pos = 0;
-        float y_pos = 0;
         SDL_GetMouseState(&x_pos, &y_pos);
         mouse.x = x_pos;
         mouse.y = y_pos;
@@ -585,12 +585,12 @@ int main(void) {
                 TTF_GetTextSize(TITLE_text, &text_w, &text_h);
                 TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
                 TTF_DrawRendererText(BACK_text, 0, BACK_rect.y);
-                TTF_DrawRendererText(ROUNDS_text, ROUNDS_x, 200);
+                TTF_DrawRendererText(ROUNDS_text, ROUNDS_x, scale_ratio.y * 200);
                 if (INPUT_text != nullptr)
                     TTF_DestroyText(INPUT_text);
                 INPUT_text = TTF_CreateText(text_engine, font, buf, 0);
                 TTF_GetTextSize(INPUT_text, &text_w, &text_h);
-                TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, 300);
+                TTF_DrawRendererText(INPUT_text, (window_resolution.x - (float) text_w) / 2, scale_ratio.y * 300);
                 if (strlen(buf) > 0)
                     max_rounds = (int) strtol(buf, nullptr, 10);
                 else
@@ -878,10 +878,10 @@ int main(void) {
                                 squares[i].y = hot_points[i].y - empty_square_size / 2;
                                 squares[i].w = squares[i].h = empty_square_size;
                                 if (round > 6 && selected != -1) {
-                                    if (selected == 4 || i == 4)
+                                    if (selected == 4)
                                         SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
                                     else {
-                                        for (int j = 0; j < 2; ++j) {
+                                        for (int j = 0; j < 3; ++j) {
                                             if (i == adjacencyMatrix2[selected][j]) {
                                                 SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
                                                 break;
@@ -1053,7 +1053,7 @@ int main(void) {
                                 SDL_Delay(200);
                                 pair place = minimax(game_board, ai_first, round,
                                                      SDL_min(max_rounds + 1,
-                                                             (dls_limit +(round / dls_limit) * dls_limit) +1));
+                                                             (dls_limit + (round / dls_limit) * dls_limit) +1));
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
                                 free(board_cleaner);
