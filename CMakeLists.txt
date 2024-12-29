@@ -8,6 +8,11 @@ if(STATIC_PROJECT)
     set(BUILD_SHARED_LIBS OFF)
     add_subdirectory(vendor)
 endif ()
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
+
 add_executable(Achi-SDL main.c src/decision_tree.c src/game_board.c src/game_interface.c)
 add_executable(Achi-console main-con.c src/decision_tree.c src/game_board.c src/game_interface.c)
 if(STATIC_PROJECT)

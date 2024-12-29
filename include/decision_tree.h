@@ -14,4 +14,5 @@ typedef struct pair {
 int ai_play(board game_board, int round, int minimizing, int max_rounds);
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth);
+pair minimax_mth(board game_board, const bool maximizing, int n, int max_depth, int thread_count);
 #endif //DECISION_TREE_H
