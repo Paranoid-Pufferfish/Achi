@@ -10,7 +10,7 @@
 
 #include "game_board.h"
 #include "decision_tree.h"
-#define THREADS 4
+#define THREADS 2
 #define CREDITS "Authors:\n- MOUHOUS Mathya (G3)\n- AIT MEDDOUR Fouâd-Eddine (G1)\nSoftware Used:\n- SDL3 master (https://github.com/libsdl-org/SDL)\n- SDL3_ttf master (https://github.com/libsdl-org/SDL_ttf)\n- SDL3_image master (https://github.com/libsdl-org/SDL_image)\n- CMake 3.30.6 (https://gitlab.kitware.com/cmake/cmake)\nFont : Acme 9 Regular\nTested On :\n- Ubuntu 24.10\n- Gentoo amd64 Stable\n- Windows 10 KVM/QEMU\n- Windows 11"
 #define RESIZE_HANDLER \
 int h, w;\
@@ -605,7 +605,7 @@ int main(void) {
                         case SDL_EVENT_QUIT: quit = true;
                             break;
                         case SDL_EVENT_TEXT_INPUT:
-                            if (event.text.text[0] >= '0' && event.text.text[0] <= '9' && strlen(buf) < 2)
+                            if (event.text.text[0] >= '0' && event.text.text[0] <= '9' && strlen(buf) < 3)
                                 strcat(buf, event.text.text);
                             break;
                         case SDL_EVENT_KEY_DOWN:

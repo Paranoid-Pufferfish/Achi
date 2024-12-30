@@ -98,6 +98,7 @@ pair minimax_mth(board game_board, const bool maximizing, int n, int max_depth, 
         pthread_t threads[thread_count];
         args_struct *arguments = calloc(9, sizeof(args_struct));
         int *evals = calloc(9, sizeof(int));
+        int number_of_threads = 0;
         for (int j = 0; j * thread_count < 8; ++j) {
             for (int i = 0; i < thread_count; ++i) {
                 arguments[j * thread_count + i].game_board = game_board;
@@ -108,19 +109,22 @@ pair minimax_mth(board game_board, const bool maximizing, int n, int max_depth, 
                 arguments[j * thread_count + i].maximizing = false;
                 evals[j * thread_count + i] = -2;
                 pthread_create(&threads[i], nullptr, routine, &arguments[j * thread_count + i]);
+                number_of_threads++;
             }
-            for (int i = 0; i < thread_count; ++i) {
-                pthread_join(threads[i], nullptr);
-            }
+                for (int i = 0; i < thread_count; ++i) {
+                    pthread_join(threads[i], nullptr);
+                }
         }
-        arguments[8].game_board = game_board;
-        arguments[8].i = 8;
-        arguments[8].n = n;
-        arguments[8].max_depth = max_depth;
-        arguments[8].eval = &evals[8];
-        evals[8] = -2;
-        pthread_create(&threads[0], nullptr, routine, &arguments[8]);
-        pthread_join(threads[0], nullptr);
+        if (number_of_threads != 9) {
+            arguments[8].game_board = game_board;
+            arguments[8].i = 8;
+            arguments[8].n = n;
+            arguments[8].max_depth = max_depth;
+            arguments[8].eval = &evals[8];
+            evals[8] = -2;
+            pthread_create(&threads[0], nullptr, routine, &arguments[8]);
+            pthread_join(threads[0], nullptr);
+        }
         int max_i = -1;
         int max_eval = (int) -INFINITY;
         for (int i = 0; i < 9; ++i) {
