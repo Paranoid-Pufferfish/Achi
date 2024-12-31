@@ -11,6 +11,7 @@
 #include "game_board.h"
 #include "decision_tree.h"
 #define THREADS 2
+#define DLS_LIMIT 8
 #define CREDITS "Authors:\n- MOUHOUS Mathya (G3)\n- AIT MEDDOUR Fouâd-Eddine (G1)\nSoftware Used:\n- SDL3 master (https://github.com/libsdl-org/SDL)\n- SDL3_ttf master (https://github.com/libsdl-org/SDL_ttf)\n- SDL3_image master (https://github.com/libsdl-org/SDL_image)\n- CMake 3.30.6 (https://gitlab.kitware.com/cmake/cmake)\nFont : Acme 9 Regular\nTested On :\n- Ubuntu 24.10\n- Gentoo amd64 Stable\n- Windows 10 KVM/QEMU\n- Windows 11"
 #define RESIZE_HANDLER \
 int h, w;\
@@ -246,9 +247,7 @@ int main(void) {
         player2_color_hex / 0x10000, (player2_color_hex % 0x10000) / 0x100, (player2_color_hex % 0x10000) % 0x100,
         SDL_ALPHA_OPAQUE
     };
-    int dls_limit = 8;
-    int entropy = 10;
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD) || !TTF_Init()) {
+    if (!SDL_Init(SDL_INIT_VIDEO) || !TTF_Init()) {
         SDL_LogCritical(SDL_LOG_CATEGORY_VIDEO, "Error initializing SDL : %s\n", SDL_GetError());
         return 1;
     }
@@ -814,6 +813,7 @@ int main(void) {
 
             case ACHI_GAME_START:
                 if (round <= max_rounds) {
+                    int dls_limit = DLS_LIMIT;
                     int turn = (round % 2 != 0) ? 1 : 2;
                     TTF_GetTextSize(TITLE_text, &text_w, &text_h);
                     TTF_DrawRendererText(TITLE_text, (window_resolution.x - (float) text_w) / 2, 0);
@@ -1054,7 +1054,7 @@ int main(void) {
                                 SDL_Delay(200);
                                 pair place = minimax_mth(game_board, ai_first, round,
                                                      SDL_min(max_rounds + 1,
-                                                             (dls_limit +(round / dls_limit) * dls_limit) +1),THREADS);
+                                                             dls_limit+round),THREADS);
 
                                 game_board =
                                         next_board(game_board, place.best_move, round++);
@@ -1068,6 +1068,7 @@ int main(void) {
                     }
                     if (game_mode == GAME_MODE_AVA) {
                         if (skip_cycle) {
+                            int entropy = 10;
                             int placement;
                             board temp_board = nullptr;
                             pair place;
@@ -1080,7 +1081,7 @@ int main(void) {
                                         SDL_Delay(200);
                                         place = minimax_mth(game_board, true, round,
                                                         SDL_min(max_rounds + 1,
-                                                                (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
+                                                                dls_limit+round),THREADS);
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     } else {
@@ -1089,7 +1090,7 @@ int main(void) {
                                         SDL_Delay(200);
                                         place = minimax_mth(game_board, false, round,
                                                         SDL_min(max_rounds + 1,
-                                                                (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
+                                                                dls_limit+round),THREADS);
                                         placement = place.best_move;
                                         temp_board = next_board(game_board, placement, round++);
                                     }
@@ -1119,7 +1120,7 @@ int main(void) {
                                             SDL_Delay(200);
                                             place = minimax_mth(game_board, true, round,
                                                             SDL_min(max_rounds + 1,
-                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
+                                                                    dls_limit+round),THREADS);
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         } else {
@@ -1128,7 +1129,7 @@ int main(void) {
                                             SDL_Delay(200);
                                             place = minimax_mth(game_board, false, round,
                                                             SDL_min(max_rounds + 1,
-                                                                    (dls_limit+(round / dls_limit) * dls_limit) +1),THREADS);
+                                                                    dls_limit+round),THREADS);
                                             placement = place.best_move;
                                             temp_board = next_board(game_board, placement, round++);
                                         }
