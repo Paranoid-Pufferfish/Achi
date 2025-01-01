@@ -7,9 +7,9 @@
 #include <math.h>
 
 #include "decision_tree.h"
-
+#ifndef _WIN32
 #include <pthread.h>
-
+#endif
 #include "game_board.h"
 
 int ai_play(board game_board, int round, int minimizing, int max_rounds) {
@@ -91,7 +91,7 @@ pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
         return Pair;
     }
 }
-
+#ifndef _WIN32
 pair minimax_mth(board game_board, const bool maximizing, int n, int max_depth, int thread_count) {
     pair Pair;
     if (maximizing) {
@@ -182,3 +182,4 @@ pair minimax_mth(board game_board, const bool maximizing, int n, int max_depth, 
         return Pair;
     }
 }
+#endif
