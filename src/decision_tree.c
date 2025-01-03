@@ -38,6 +38,7 @@ void *routine(void *args) {
         *(arguments.eval) = minimax(next_playing_board, arguments.maximizing, arguments.n + 1, arguments.max_depth).eval;
         free(next_playing_board);
     }
+    return nullptr;
 }
 
 pair minimax(board game_board, const bool maximizing, int n, int max_depth) {
