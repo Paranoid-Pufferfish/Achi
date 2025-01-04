@@ -869,11 +869,16 @@ int main(void) {
                                 squares[i].y = hot_points[i].y - empty_square_size / 2;
                                 squares[i].w = squares[i].h = empty_square_size;
                                 if (round > 6 && selected != -1) {
-                                    if (selected == 4)
+                                    if (selected == 4) {
+                                        if (SDL_PointInRectFloat(&mouse, &squares[i]))
+                                            SDL_SetCursor(pointing_cursor);
                                         SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
+                                    }
                                     else {
                                         for (int j = 0; j < 3; ++j) {
                                             if (i == adjacencyMatrix2[selected][j]) {
+                                                if (SDL_PointInRectFloat(&mouse, &squares[i]))
+                                                    SDL_SetCursor(pointing_cursor);
                                                 SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
                                                 break;
                                             } else
