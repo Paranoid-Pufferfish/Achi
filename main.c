@@ -268,17 +268,7 @@ int main(void) {
         SDL_Log("Cannot import assets : %s\n", SDL_GetError());
         return 1;
     }
-    SDL_Texture *next_arrow = IMG_LoadTexture(renderer, "../media/next_arrow.svg");
 
-    if (next_arrow == nullptr) {
-        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
-        return 1;
-    }
-    SDL_Texture *previous_arrow = IMG_LoadTexture(renderer, "../media/previous_arrow.svg");
-    if (previous_arrow == nullptr) {
-        SDL_Log("Cannot import assets : %s\n", SDL_GetError());
-        return 1;
-    }
     ACHI_SCENE scene = ACHI_MENU;
     bool quit = false;
     bool skip_cycle = false;
