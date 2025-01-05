@@ -483,49 +483,60 @@ int main(void) {
     SDL_SetNumberProperty(input_properties_id,SDL_PROP_TEXTINPUT_TYPE_NUMBER, SDL_TEXTINPUT_TYPE_NUMBER);
     float x_pos = 0;
     float y_pos = 0;
+    int cursor_poll_delay = 500;
+    bool pointing = false;
     while (!quit) {
         SDL_GetMouseState(&x_pos, &y_pos);
         mouse.x = x_pos;
         mouse.y = y_pos;
         SDL_RenderClear(renderer);
-        SDL_SetCursor(default_cursor);
+        if (cursor_poll_delay <= 0) {
+            if (pointing) {
+                SDL_SetCursor(pointing_cursor);
+                pointing = false;
+            }
+            else
+                SDL_SetCursor(default_cursor);
+            cursor_poll_delay = 500;
+        } else
+            cursor_poll_delay--;
         switch (scene) {
             case ACHI_MENU:
                 if (SDL_PointInRectFloat(&mouse, &PVP_rect)) {
                     SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(renderer, &PVP_rect);
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &PVA_rect)) {
                     SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(renderer, &PVA_rect);
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &AVA_rect)) {
                     SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(renderer, &AVA_rect);
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &SETTINGS_rect)) {
                     SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(renderer, &SETTINGS_rect);
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &ABOUT_rect)) {
                     SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(renderer, &ABOUT_rect);
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &QUIT_rect)) {
                     SDL_SetRenderDrawColor(renderer, 0x15, 0x15, 0x15,SDL_ALPHA_OPAQUE);
                     SDL_RenderFillRect(renderer, &QUIT_rect);
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 }
                 TTF_DrawRendererText(WELCOME_text, WELCOME_x, 0);
                 TTF_DrawRendererText(PVP_text, PVP_rect.x, PVP_rect.y);
@@ -644,10 +655,10 @@ int main(void) {
                 if (max_rounds >= 6) {
                     TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
                     if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
-                        SDL_SetCursor(pointing_cursor);
+                        pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect))
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
 
                 break;
             case ACHI_PREGAME_PVA:
@@ -694,11 +705,11 @@ int main(void) {
                 if (order_selected) {
                     TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
                     if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
-                        SDL_SetCursor(pointing_cursor);
+                        pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &PlayerFirst_rect) ||
                     SDL_PointInRectFloat(&mouse, &AIFirst_rect))
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 break;
             case ACHI_PREGAME_AVA:
                 TTF_GetTextSize(TITLE_text, &text_w, &text_h);
@@ -795,14 +806,14 @@ int main(void) {
                 if (order_selected && second_ai_rand_selected) {
                     TTF_DrawRendererText(NEXT_text, NEXT_rect.x, NEXT_rect.y);
                     if (SDL_PointInRectFloat(&mouse, &NEXT_rect))
-                        SDL_SetCursor(pointing_cursor);
+                        pointing = true;
                 }
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS_rect) ||
                     SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS_rect) || SDL_PointInRectFloat(
                         &mouse, &NO_RANDOMNESS_rect) || SDL_PointInRectFloat(&mouse, &ALL_RANDOMNESS2_rect) ||
                     SDL_PointInRectFloat(&mouse, &SOME_RANDOMNESS2_rect) || SDL_PointInRectFloat(
                         &mouse, &NO_RANDOMNESS2_rect))
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 break;
 
             case ACHI_GAME_START:
@@ -875,14 +886,13 @@ int main(void) {
                                 if (round > 6 && selected != -1) {
                                     if (selected == 4) {
                                         if (SDL_PointInRectFloat(&mouse, &squares[i]))
-                                            SDL_SetCursor(pointing_cursor);
+                                            pointing = true;
                                         SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
-                                    }
-                                    else {
+                                    } else {
                                         for (int j = 0; j < 3; ++j) {
                                             if (i == adjacencyMatrix2[selected][j]) {
                                                 if (SDL_PointInRectFloat(&mouse, &squares[i]))
-                                                    SDL_SetCursor(pointing_cursor);
+                                                    pointing = true;
                                                 SDL_SetTextureColorModFloat(unoccupied_square, 0xFF, 0x00, 0x00);
                                                 break;
                                             } else
@@ -1033,13 +1043,13 @@ int main(void) {
                     if (round <= 6) {
                         for (int i = 0; i < 9; ++i) {
                             if (game_board[i].occupied_by == 0 && SDL_PointInRectFloat(&mouse, &squares[i]))
-                                SDL_SetCursor(pointing_cursor);
+                                pointing = true;
                         }
                     } else {
                         for (int i = 0; i < 9; ++i) {
                             if ((game_board[i].occupied_by == ((turn == 2) ? -1 : turn)) && SDL_PointInRectFloat(
                                     &mouse, &squares[i]))
-                                SDL_SetCursor(pointing_cursor);
+                                pointing = true;
                         }
                     }
                     if (selected != -1 && game_board[selected].occupied_by != ((turn == 2) ? -1 : turn)) {
@@ -1198,7 +1208,7 @@ int main(void) {
                     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00,SDL_ALPHA_OPAQUE);
                     if (SDL_PointInRectFloat(&mouse, &RETRY_rect) ||
                         SDL_PointInRectFloat(&mouse, &MAIN_MENU_rect))
-                        SDL_SetCursor(pointing_cursor);
+                        pointing = true;
                     switch (game_mode) {
                         case GAME_MODE_PVP:
                             if (state != 0)
@@ -1339,7 +1349,7 @@ int main(void) {
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect) || SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect) ||
                     SDL_PointInRectFloat(&mouse, &PLAYER1_COLOR_rect) || SDL_PointInRectFloat(
                         &mouse, &PLAYER2_COLOR_rect))
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 if (SDL_PointInRectFloat(&mouse, &FULLSCREEN_rect))
                     TTF_SetTextFont(FULLSCREEN_text, font_underlined);
                 else
@@ -1496,7 +1506,7 @@ int main(void) {
                 TTF_DrawRendererText(BACK_text, BACK_rect.x, BACK_rect.y);
                 TTF_DrawRendererText(CREDITS_text, CREDITS_rect.x, CREDITS_rect.y);
                 if (SDL_PointInRectFloat(&mouse, &BACK_rect))
-                    SDL_SetCursor(pointing_cursor);
+                    pointing = true;
                 while (SDL_PollEvent(&event)) {
                     switch (event.type) {
                         case SDL_EVENT_WINDOW_RESIZED:
