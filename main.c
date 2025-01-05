@@ -3,10 +3,14 @@
 #include <SDL3/SDL.h>
 #ifdef SDL_PLATFORM_WINDOWS
 #include <time.h>
-#endif
-#include <ctype.h>
+#include <SDL3/SDL_image.h>
+#include <SDL3/SDL_ttf.h>
+#else
 #include <SDL3_image/SDL_image.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#endif
+#include <ctype.h>
+
 
 #include "game_board.h"
 #include "decision_tree.h"
@@ -1110,7 +1114,7 @@ int main(void) {
                                     }
                                     break;
                                 case SOME_RAND:
-#ifdef _SDL_PLATFORM_WINDOWS
+#ifdef SDL_PLATFORM_WINDOWS
                                     if (rand() % (entropy+1) == 2) {
                                         SDL_Log("Round %d: Random Move", round);
                                         do {
