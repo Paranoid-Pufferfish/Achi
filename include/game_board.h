@@ -19,7 +19,7 @@ int is_winning(board game_board);
 
 void output_board(board game_board);
 
-void get_played(board game_board, int *number, int player, int *empty_squares);
+void get_played(board game_board, int *number, int player, int *squares);
 
 void get_adjacent(board game_board, int *number, int place, int *adjacents);
 

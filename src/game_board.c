@@ -134,7 +134,7 @@ void output_adjacent(board game_board, int place, const int *squares) {
     }
 }
 
-void get_played(board game_board, int *number, int player, int *empty_squares) {
+void get_played(board game_board, int *number, int player, int *squares) {
     *number = 0;
     for (int i = 0; i < 9; ++i) {
         if (game_board[i].occupied_by == player)
@@ -144,7 +144,7 @@ void get_played(board game_board, int *number, int player, int *empty_squares) {
         int index = 0;
         for (int i = 0; i < 9; ++i) {
             if (game_board[i].occupied_by == player) {
-                empty_squares[index] = i;
+                squares[index] = i;
                 index++;
             }
         }

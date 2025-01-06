@@ -1,0 +1,12 @@
+#+title: Writeup
+
+* Introduction:
+
+Achi is a Ghanian game that is similar to Tic-Tac-Toe, with the distinction of two phases and move sets rather than one, and the grid-like board (though it can be represented in the traditional Tic-Tac-Toe board). Players take turns placing one piece per round until both players have placed 3 pieces each, we call this *The Placement Phase*, we then enter the second phase *The Movement Phase* where players take turns moving pieces to one of their adjacent free spots. This is done until someone wins by forming a line (Horizontal, Vertical or Diagonal), or a draw if the game reaches the limited number of rounds.
+
+* Technologies used:
+
+For this project, we decided to go with [[https://en.cppreference.com/w/c/23][C23]] as a C standard, [[https://wiki.libsdl.org/][SDL3]] [[https://wiki.libsdl.org/SDL3_ttf/FrontPage][SDL3_TTF]] and [[https://wiki.libsdl.org/SDL3_image/][SDL3_image]] for rendering, and [[https://cmake.org/][cmake]] as a build system. And most importantly [[https://notbyai.fyi/][NOT BY AI]].
+The code lives on [[https://github.com/Paranoid-Pufferfish/Achi][This Github Repo]].
+
+[[https://www.jetbrains.com/clion/][Jetbrains CLion]] and [[https://code.visualstudio.com/][Microsoft Visual Studio Code]] were used to make this project, and it was tested on [[https://www.gentoo.org/][Gentoo Linux]] and Windows 11
