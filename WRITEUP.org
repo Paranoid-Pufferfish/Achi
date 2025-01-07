@@ -41,6 +41,7 @@ A game board is made up of 9 squares which have an *occupied_by* attribute(Integ
 
 [[./assets/square.png]]
 [[./assets/board.png]]
+
 Making the Total Size of a single board: *728bytes*.
 
 ** Important Functions:
