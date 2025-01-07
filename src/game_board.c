@@ -175,15 +175,8 @@ board next_board(board game_board, int placement, int round) {
     int number_empty;
     int empty_squares[9];
     get_played(game_board, &number_empty, 0, empty_squares);
-    bool empty = false;
     if (round <= 6) {
-        for (int i = 0; i < number_empty; ++i) {
-            if (placement == empty_squares[i]) {
-                empty = true;
-                break;
-            }
-        }
-        if (!empty)
+        if (game_board[placement].occupied_by != 0)
             return nullptr;
         int t = (round % 2 == 0) ? -1 : 1;
         board new_game_board = copy_board(game_board);
@@ -200,17 +193,15 @@ board next_board(board game_board, int placement, int round) {
         get_played(game_board, &number_played, t, player_squares);
         if (player_squares[placement / 3] == -1)
             return nullptr;
-        board new_game_board = copy_board(game_board);
         int possible_adjacents[3] = {-1, -1, -1};
-        get_adjacent(new_game_board, &number_played, player_squares[placement / 3], possible_adjacents);
-        if (number_played == 0) {
-            free(new_game_board);
+        get_adjacent(game_board, &number_played, player_squares[placement / 3], possible_adjacents);
+        if (number_played == 0)
             return nullptr;
-        }
-        if (possible_adjacents[placement % 3] == -1) {
-            free(new_game_board);
+
+        if (possible_adjacents[placement % 3] == -1)
             return nullptr;
-        }
+
+        board new_game_board = copy_board(game_board);
         new_game_board[player_squares[placement / 3]].occupied_by = 0;
         new_game_board[player_squares[placement / 3]].adjacent[possible_adjacents[placement % 3]]->occupied_by = t;
         return new_game_board;
