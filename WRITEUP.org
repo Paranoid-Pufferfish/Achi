@@ -66,6 +66,8 @@ Returns a new board(or nullptr if the move is illegal) following the move *place
 [[./assets/next_board.png]]
 [[./assets/next_board_2.png]]
 *** pair minimax(board game_board, const bool maximizing, int n, int max_depth)
+[[./assets/minimax.png]]
+
 A simple implementation of the minimax Algorithm to get the best possible move in a round *n* up until the round *max_depth*. Returns a pair of a best move and its evaluation.
 
 
