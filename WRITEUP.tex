@@ -1,0 +1,170 @@
+% Created 2025-01-14 Tue 13:59
+% Intended LaTeX compiler: pdflatex
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage[normalem]{ulem}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{capt-of}
+\usepackage{hyperref}
+\date{\today}
+\title{Writeup}
+\hypersetup{
+ pdfauthor={},
+ pdftitle={Writeup},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.4 (Org mode 9.8)}, 
+ pdflang={English}}
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/Written-By-Human-Not-By-AI-Badge-white.png}
+\end{center}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/Developed-By-Human-Not-By-AI-Badge-white.png}
+\end{center}
+\section{Introduction:}
+\label{sec:org3ff539a}
+
+Achi is a Ghanian game that is similar to Tic-Tac-Toe, with the distinction of two phases and move sets rather than one, and the grid-like board (though it can be represented in the traditional Tic-Tac-Toe board). Players take turns placing one piece per round until both players have placed 3 pieces each, we call this \textbf{The Placement Phase}, we then enter the second phase \textbf{The Movement Phase} where players take turns moving pieces to one of their adjacent free spots. This is done until someone wins by forming a line (Horizontal, Vertical or Diagonal), or a draw if the game reaches the limited number of rounds.
+\section{Technologies used:}
+\label{sec:orgca34fd7}
+
+For this project, we decided to go with \href{https://en.cppreference.com/w/c/23}{C23} as a C standard, \href{https://wiki.libsdl.org/}{SDL3} \href{https://wiki.libsdl.org/SDL3\_ttf/FrontPage}{SDL3\textsubscript{TTF}} and \href{https://wiki.libsdl.org/SDL3\_image/}{SDL3\textsubscript{image}} for rendering, and \href{https://cmake.org/}{cmake} as a build system and \href{https://www.dafont.com/grixel-acme-7-wide.font}{Grixel Acme 9} as a font. And most importantly \href{https://notbyai.fyi/}{NOT BY AI}.
+The code lives on \href{https://github.com/Paranoid-Pufferfish/Achi}{This Github Repo}.
+
+\href{https://www.jetbrains.com/clion/}{Jetbrains CLion} and \href{https://code.visualstudio.com/}{Microsoft Visual Studio Code} were used to make this project, and it was tested on \href{https://www.gentoo.org/}{Gentoo Linux} and Windows 11.
+\section{Authors:}
+\label{sec:org246efe0}
+\begin{itemize}
+\item MOUHOUS Mathya \textbf{G3}
+\item AIT MEDDOUR Fouâd-Eddine \textbf{G1}
+\end{itemize}
+\section{The Writeup:}
+\label{sec:org65c0dcb}
+\subsection{Versions:}
+\label{sec:org5878296}
+When building this project, two(2) targets will be present:
+\begin{itemize}
+\item \textbf{Achi-console}: A minimal, console only version of the project, the first version we created and also the most minimal one. The main difference between it and the SDL version is the AI configuration options, as it has only one rather than three.
+
+\item \textbf{Achi-SDL}: The full version, using SDL3 to render the game on a window, has more features and is overall more polished.
+\end{itemize}
+\subsection{Project Structure:}
+\label{sec:org16d66e0}
+The main files in this project are as follow:
+
+\begin{itemize}
+\item \textbf{CMakeLists.txt}: configuration file for CMake which handles dependencies, building, and linking the different binaries, \textbf{mingw-w64-x86\textsubscript{64.cmake}} was used for crosscompiling to Windows from Linux.
+\item \textbf{main.c}: The entry point for the Achi-SDL target.
+\item \textbf{main-con.c}: The entry point for the Achi-console target.
+\end{itemize}
+\subsubsection{/src and /include:}
+\label{sec:org861c05e}
+C \& Header files with the reused functions across the two targets, and to overall organise and tidy the structure a bit.
+\subsubsection{/media}
+\label{sec:org27536fd}
+Directory that contains the font used, alongside other assets required in runtime.
+\subsection{Structs definitions:}
+\label{sec:orgbc7bfbe}
+A game board is made up of 9 squares which have an \textbf{occupied\textsubscript{by}} attribute(Integer) and an array of 8 pointers to other squares, named \textbf{adjacent}. Making it a struct of size \textbf{72bytes} with \textbf{8bytes} for alignment. And a board is defined as a pointer to a square(or squares).
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/square.png}
+\end{center}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/board.png}
+\end{center}
+
+Making the Total Size of a single board: \textbf{728bytes}.
+\subsection{Important Functions:}
+\label{sec:orgffcf527}
+
+\subsubsection{board create\textsubscript{board}()}
+\label{sec:org7f61635}
+Self explanatory, it creates a board, and returns it, it is defined in \textbf{include/game\textsubscript{board.h}} and starts by allocating memory space for an array of 9 squares, and sets the \textbf{game\textsubscript{board}} variable to its pointer. And Loops over the squares, setting the ownership to 0 for none, and fills in the adjacent fields using the \textbf{adjacencyMatrix[9][2]} variable.
+\subsubsection{void get\textsubscript{played}(board game\textsubscript{board}, int *number, int player, int *squares)}
+\label{sec:org8807f6d}
+
+Stores the indices of the squares played by \textbf{player} to \textbf{squares} and the number to \textbf{number}.
+\subsubsection{void get\textsubscript{adjacent}(board game\textsubscript{board}, int *number, int place, int *adjacents)}
+\label{sec:org608179b}
+
+Stores the indices of the empty squares adjacent to the square \textbf{place} in the array \textbf{adjacents} and the number to \textbf{number}.
+\subsubsection{board next\textsubscript{board}(board game\textsubscript{board}, int placement, int round)}
+\label{sec:org4bedb9d}
+
+Returns a new board(or nullptr if the move is illegal) following the move \textbf{placement}. In the first 6 rounds it is treated as the index of the square to place the piece in, but after that, it is treated as follow:
+
+\begin{itemize}
+\item Placement / 3 is the index of the piece to move \textbf{\textbf{in the array returned by get\textsubscript{played}()}}.
+\item Placement \% 3 is the index of the square to move TO \textbf{\textbf{in the array returned by get\textsubscript{adjacent}()}}.
+\end{itemize}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/next_board.png}
+\end{center}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/next_board_2.png}
+\end{center}
+\subsubsection{pair minimax(board game\textsubscript{board}, const bool maximizing, int n, int max\textsubscript{depth})}
+\label{sec:orgc10979e}
+\begin{center}
+\includegraphics[width=.9\linewidth]{./assets/minimax.png}
+\end{center}
+
+A simple implementation of the minimax Algorithm to get the best possible move in a round \textbf{n} up until the round \textbf{max\textsubscript{depth}}. Returns a pair of a best move and its evaluation.
+
+
+Minimax is a deterministic Algorithm that works on the structure of a Tree, and the concept of the ``Least Bad Move'' as a playing strategy.
+\subsubsection{pair minimax\textsubscript{mth}(board game\textsubscript{board}, const bool maximizing, int n, int max\textsubscript{depth}, int thread\textsubscript{count});}
+\label{sec:orgf635579}
+Same as the one before, but with multithreading with the pthreads.h library, only works in UNIX for now.
+\subsection{Game Modes:}
+\label{sec:org36a3d68}
+\subsubsection{Player VS Player:}
+\label{sec:org887e3d0}
+Self Explanatory, the game is played between two human players until one of them wins, or the maximum round is reached.
+\subsubsection{Player VS AI:}
+\label{sec:org9df0aec}
+The game is played between an AI using the minimax algorithm (with a depth of \textbf{round + dls\textsubscript{limit}}, or 8 rounds ahead) the player who plays first is picked before starting the game.
+\subsubsection{AI VS AI:}
+\label{sec:orgcf44f8b}
+A mode to visualise a game between two AIs, possible configuration for each AI is:
+\begin{itemize}
+\item No Randomness (Same as Player VS AI, aka using minimax), two Non Random AIs playing against eachother will result in an infinite loop.
+\item Some Randomness: Plays using the minimax algorithm, but there is a chance of making a random move, this chance is determined by the entropy variable.
+\item All Randomness: All moves are random and unpredictable*.
+\end{itemize}
+\subsection{Windows/Linux differences:}
+\label{sec:orgce76880}
+\subsubsection{Randomness:}
+\label{sec:org5243b5d}
+When building for Windows, \textbf{srand()} is used to handle randomness, alongside using time as the seed, which is cryptographically insecure. On GNU/Linux on the other hand, \textbf{arc4random} is used.
+\subsubsection{Multithreading:}
+\label{sec:orga9d318f}
+When Building for windows, \textbf{minimax\textsubscript{mth}} is NOT used as \textbf{pthreads.h} is not part of the C standard for Windows, and can't be used in mingw. On Linux however, its used with 2 threads as a sane default.
+\section{License}
+\label{sec:orgc483a37}
+Copyright 2025 MOUHOUS Mathya \& AIT MEDDOUR Fouâd-Eddine
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+\begin{enumerate}
+\item Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+\item Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+\item Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+\end{enumerate}
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+\end{document}

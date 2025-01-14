@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2025-01-14 Tue 14:00 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Writeup</title>
+<meta name="generator" content="Org Mode" />
+<style type="text/css">
+  #content { max-width: 60em; margin: auto; }
+  .title  { text-align: center;
+             margin-bottom: .2em; }
+  .subtitle { text-align: center;
+              font-size: medium;
+              font-weight: bold;
+              margin-top:0; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { font-family: monospace; color: green; }
+  .priority { font-family: monospace; color: orange; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .org-right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .org-left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .org-center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #e6e6e6;
+    border-radius: 3px;
+    background-color: #f2f2f2;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: auto;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    padding: 3px;
+    color: #555;
+    background-color: #f2f2f299;
+  }
+  pre.src:hover:before { display: inline; margin-top: 14px;}
+  /* Languages per Org manual */
+  pre.src-asymptote:before { content: 'Asymptote'; }
+  pre.src-awk:before { content: 'Awk'; }
+  pre.src-authinfo::before { content: 'Authinfo'; }
+  pre.src-C:before { content: 'C'; }
+  /* pre.src-C++ doesn't work in CSS */
+  pre.src-clojure:before { content: 'Clojure'; }
+  pre.src-css:before { content: 'CSS'; }
+  pre.src-D:before { content: 'D'; }
+  pre.src-ditaa:before { content: 'ditaa'; }
+  pre.src-dot:before { content: 'Graphviz'; }
+  pre.src-calc:before { content: 'Emacs Calc'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-fortran:before { content: 'Fortran'; }
+  pre.src-gnuplot:before { content: 'gnuplot'; }
+  pre.src-haskell:before { content: 'Haskell'; }
+  pre.src-hledger:before { content: 'hledger'; }
+  pre.src-java:before { content: 'Java'; }
+  pre.src-js:before { content: 'Javascript'; }
+  pre.src-latex:before { content: 'LaTeX'; }
+  pre.src-ledger:before { content: 'Ledger'; }
+  pre.src-lisp:before { content: 'Lisp'; }
+  pre.src-lilypond:before { content: 'Lilypond'; }
+  pre.src-lua:before { content: 'Lua'; }
+  pre.src-matlab:before { content: 'MATLAB'; }
+  pre.src-mscgen:before { content: 'Mscgen'; }
+  pre.src-ocaml:before { content: 'Objective Caml'; }
+  pre.src-octave:before { content: 'Octave'; }
+  pre.src-org:before { content: 'Org mode'; }
+  pre.src-oz:before { content: 'OZ'; }
+  pre.src-plantuml:before { content: 'Plantuml'; }
+  pre.src-processing:before { content: 'Processing.js'; }
+  pre.src-python:before { content: 'Python'; }
+  pre.src-R:before { content: 'R'; }
+  pre.src-ruby:before { content: 'Ruby'; }
+  pre.src-sass:before { content: 'Sass'; }
+  pre.src-scheme:before { content: 'Scheme'; }
+  pre.src-screen:before { content: 'Gnu Screen'; }
+  pre.src-sed:before { content: 'Sed'; }
+  pre.src-sh:before { content: 'shell'; }
+  pre.src-sql:before { content: 'SQL'; }
+  pre.src-sqlite:before { content: 'SQLite'; }
+  /* additional languages in org.el's org-babel-load-languages alist */
+  pre.src-forth:before { content: 'Forth'; }
+  pre.src-io:before { content: 'IO'; }
+  pre.src-J:before { content: 'J'; }
+  pre.src-makefile:before { content: 'Makefile'; }
+  pre.src-maxima:before { content: 'Maxima'; }
+  pre.src-perl:before { content: 'Perl'; }
+  pre.src-picolisp:before { content: 'Pico Lisp'; }
+  pre.src-scala:before { content: 'Scala'; }
+  pre.src-shell:before { content: 'Shell Script'; }
+  pre.src-ebnf2ps:before { content: 'ebfn2ps'; }
+  /* additional language identifiers per "defun org-babel-execute"
+       in ob-*.el */
+  pre.src-cpp:before  { content: 'C++'; }
+  pre.src-abc:before  { content: 'ABC'; }
+  pre.src-coq:before  { content: 'Coq'; }
+  pre.src-groovy:before  { content: 'Groovy'; }
+  /* additional language identifiers from org-babel-shell-names in
+     ob-shell.el: ob-shell is the only babel language using a lambda to put
+     the execution function name together. */
+  pre.src-bash:before  { content: 'bash'; }
+  pre.src-csh:before  { content: 'csh'; }
+  pre.src-ash:before  { content: 'ash'; }
+  pre.src-dash:before  { content: 'dash'; }
+  pre.src-ksh:before  { content: 'ksh'; }
+  pre.src-mksh:before  { content: 'mksh'; }
+  pre.src-posh:before  { content: 'posh'; }
+  /* Additional Emacs modes also supported by the LaTeX listings package */
+  pre.src-ada:before { content: 'Ada'; }
+  pre.src-asm:before { content: 'Assembler'; }
+  pre.src-caml:before { content: 'Caml'; }
+  pre.src-delphi:before { content: 'Delphi'; }
+  pre.src-html:before { content: 'HTML'; }
+  pre.src-idl:before { content: 'IDL'; }
+  pre.src-mercury:before { content: 'Mercury'; }
+  pre.src-metapost:before { content: 'MetaPost'; }
+  pre.src-modula-2:before { content: 'Modula-2'; }
+  pre.src-pascal:before { content: 'Pascal'; }
+  pre.src-ps:before { content: 'PostScript'; }
+  pre.src-prolog:before { content: 'Prolog'; }
+  pre.src-simula:before { content: 'Simula'; }
+  pre.src-tcl:before { content: 'tcl'; }
+  pre.src-tex:before { content: 'TeX'; }
+  pre.src-plain-tex:before { content: 'Plain TeX'; }
+  pre.src-verilog:before { content: 'Verilog'; }
+  pre.src-vhdl:before { content: 'VHDL'; }
+  pre.src-xml:before { content: 'XML'; }
+  pre.src-nxml:before { content: 'XML'; }
+  /* add a generic configuration mode; LaTeX export needs an additional
+     (add-to-list 'org-latex-listings-langs '(conf " ")) in .emacs */
+  pre.src-conf:before { content: 'Configuration File'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.org-right  { text-align: center;  }
+  th.org-left   { text-align: center;   }
+  th.org-center { text-align: center; }
+  td.org-right  { text-align: right;  }
+  td.org-left   { text-align: left;   }
+  td.org-center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara { display: inline; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .equation-container {
+    display: table;
+    text-align: center;
+    width: 100%;
+  }
+  .equation {
+    vertical-align: middle;
+  }
+  .equation-label {
+    display: table-cell;
+    text-align: right;
+    vertical-align: middle;
+  }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  .org-svg { }
+</style>
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Writeup</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#org6673940">1. Introduction:</a></li>
+<li><a href="#orgbffa3e1">2. Technologies used:</a></li>
+<li><a href="#org9541158">3. Authors:</a></li>
+<li><a href="#org18396b9">4. The Writeup:</a>
+<ul>
+<li><a href="#org7e07e1f">4.1. Versions:</a></li>
+<li><a href="#orgae4b233">4.2. Project Structure:</a>
+<ul>
+<li><a href="#org0f74491">4.2.1. /src and /include:</a></li>
+<li><a href="#org7943da1">4.2.2. /media</a></li>
+</ul>
+</li>
+<li><a href="#orgaf1d670">4.3. Structs definitions:</a></li>
+<li><a href="#org59c42ba">4.4. Important Functions:</a>
+<ul>
+<li><a href="#orgd1db013">4.4.1. board create<sub>board</sub>()</a></li>
+<li><a href="#org8d9b324">4.4.2. void get<sub>played</sub>(board game<sub>board</sub>, int *number, int player, int *squares)</a></li>
+<li><a href="#orgeb674bc">4.4.3. void get<sub>adjacent</sub>(board game<sub>board</sub>, int *number, int place, int *adjacents)</a></li>
+<li><a href="#orgb81ff8d">4.4.4. board next<sub>board</sub>(board game<sub>board</sub>, int placement, int round)</a></li>
+<li><a href="#orge0f6f72">4.4.5. pair minimax(board game<sub>board</sub>, const bool maximizing, int n, int max<sub>depth</sub>)</a></li>
+<li><a href="#org988c672">4.4.6. pair minimax<sub>mth</sub>(board game<sub>board</sub>, const bool maximizing, int n, int max<sub>depth</sub>, int thread<sub>count</sub>);</a></li>
+</ul>
+</li>
+<li><a href="#orgc91fedf">4.5. Game Modes:</a>
+<ul>
+<li><a href="#orge291671">4.5.1. Player VS Player:</a></li>
+<li><a href="#org9fa620f">4.5.2. Player VS AI:</a></li>
+<li><a href="#orga98f8a0">4.5.3. AI VS AI:</a></li>
+</ul>
+</li>
+<li><a href="#org91f77ca">4.6. Windows/Linux differences:</a>
+<ul>
+<li><a href="#org5a9df0f">4.6.1. Randomness:</a></li>
+<li><a href="#orgb2982a4">4.6.2. Multithreading:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#org72a6217">5. License</a></li>
+</ul>
+</div>
+</div>
+<p>
+<img src="./assets/Written-By-Human-Not-By-AI-Badge-white.png" alt="Written-By-Human-Not-By-AI-Badge-white.png" />
+<img src="./assets/Developed-By-Human-Not-By-AI-Badge-white.png" alt="Developed-By-Human-Not-By-AI-Badge-white.png" />
+</p>
+<div id="outline-container-org6673940" class="outline-2">
+<h2 id="org6673940"><span class="section-number-2">1.</span> Introduction:</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Achi is a Ghanian game that is similar to Tic-Tac-Toe, with the distinction of two phases and move sets rather than one, and the grid-like board (though it can be represented in the traditional Tic-Tac-Toe board). Players take turns placing one piece per round until both players have placed 3 pieces each, we call this <b>The Placement Phase</b>, we then enter the second phase <b>The Movement Phase</b> where players take turns moving pieces to one of their adjacent free spots. This is done until someone wins by forming a line (Horizontal, Vertical or Diagonal), or a draw if the game reaches the limited number of rounds.
+</p>
+</div>
+</div>
+<div id="outline-container-orgbffa3e1" class="outline-2">
+<h2 id="orgbffa3e1"><span class="section-number-2">2.</span> Technologies used:</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+For this project, we decided to go with <a href="https://en.cppreference.com/w/c/23">C23</a> as a C standard, <a href="https://wiki.libsdl.org/">SDL3</a> <a href="https://wiki.libsdl.org/SDL3_ttf/FrontPage">SDL3<sub>TTF</sub></a> and <a href="https://wiki.libsdl.org/SDL3_image/">SDL3<sub>image</sub></a> for rendering, and <a href="https://cmake.org/">cmake</a> as a build system and <a href="https://www.dafont.com/grixel-acme-7-wide.font">Grixel Acme 9</a> as a font. And most importantly <a href="https://notbyai.fyi/">NOT BY AI</a>.
+The code lives on <a href="https://github.com/Paranoid-Pufferfish/Achi">This Github Repo</a>.
+</p>
+
+<p>
+<a href="https://www.jetbrains.com/clion/">Jetbrains CLion</a> and <a href="https://code.visualstudio.com/">Microsoft Visual Studio Code</a> were used to make this project, and it was tested on <a href="https://www.gentoo.org/">Gentoo Linux</a> and Windows 11.
+</p>
+</div>
+</div>
+<div id="outline-container-org9541158" class="outline-2">
+<h2 id="org9541158"><span class="section-number-2">3.</span> Authors:</h2>
+<div class="outline-text-2" id="text-3">
+<ul class="org-ul">
+<li>MOUHOUS Mathya <b>G3</b></li>
+<li>AIT MEDDOUR Fouâd-Eddine <b>G1</b></li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org18396b9" class="outline-2">
+<h2 id="org18396b9"><span class="section-number-2">4.</span> The Writeup:</h2>
+<div class="outline-text-2" id="text-4">
+</div>
+<div id="outline-container-org7e07e1f" class="outline-3">
+<h3 id="org7e07e1f"><span class="section-number-3">4.1.</span> Versions:</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+When building this project, two(2) targets will be present:
+</p>
+<ul class="org-ul">
+<li><b>Achi-console</b>: A minimal, console only version of the project, the first version we created and also the most minimal one. The main difference between it and the SDL version is the AI configuration options, as it has only one rather than three.</li>
+
+<li><b>Achi-SDL</b>: The full version, using SDL3 to render the game on a window, has more features and is overall more polished.</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-orgae4b233" class="outline-3">
+<h3 id="orgae4b233"><span class="section-number-3">4.2.</span> Project Structure:</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+The main files in this project are as follow:
+</p>
+
+<ul class="org-ul">
+<li><b>CMakeLists.txt</b>: configuration file for CMake which handles dependencies, building, and linking the different binaries, <b>mingw-w64-x86<sub>64.cmake</sub></b> was used for crosscompiling to Windows from Linux.</li>
+<li><b>main.c</b>: The entry point for the Achi-SDL target.</li>
+<li><b>main-con.c</b>: The entry point for the Achi-console target.</li>
+</ul>
+</div>
+<div id="outline-container-org0f74491" class="outline-4">
+<h4 id="org0f74491"><span class="section-number-4">4.2.1.</span> /src and /include:</h4>
+<div class="outline-text-4" id="text-4-2-1">
+<p>
+C &amp; Header files with the reused functions across the two targets, and to overall organise and tidy the structure a bit.
+</p>
+</div>
+</div>
+<div id="outline-container-org7943da1" class="outline-4">
+<h4 id="org7943da1"><span class="section-number-4">4.2.2.</span> /media</h4>
+<div class="outline-text-4" id="text-4-2-2">
+<p>
+Directory that contains the font used, alongside other assets required in runtime.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgaf1d670" class="outline-3">
+<h3 id="orgaf1d670"><span class="section-number-3">4.3.</span> Structs definitions:</h3>
+<div class="outline-text-3" id="text-4-3">
+<p>
+A game board is made up of 9 squares which have an <b>occupied<sub>by</sub></b> attribute(Integer) and an array of 8 pointers to other squares, named <b>adjacent</b>. Making it a struct of size <b>72bytes</b> with <b>8bytes</b> for alignment. And a board is defined as a pointer to a square(or squares).
+</p>
+
+<p>
+<img src="./assets/square.png" alt="square.png" />
+<img src="./assets/board.png" alt="board.png" />
+</p>
+
+<p>
+Making the Total Size of a single board: <b>728bytes</b>.
+</p>
+</div>
+</div>
+<div id="outline-container-org59c42ba" class="outline-3">
+<h3 id="org59c42ba"><span class="section-number-3">4.4.</span> Important Functions:</h3>
+<div class="outline-text-3" id="text-4-4">
+</div>
+<div id="outline-container-orgd1db013" class="outline-4">
+<h4 id="orgd1db013"><span class="section-number-4">4.4.1.</span> board create<sub>board</sub>()</h4>
+<div class="outline-text-4" id="text-4-4-1">
+<p>
+Self explanatory, it creates a board, and returns it, it is defined in <b>include/game<sub>board.h</sub></b> and starts by allocating memory space for an array of 9 squares, and sets the <b>game<sub>board</sub></b> variable to its pointer. And Loops over the squares, setting the ownership to 0 for none, and fills in the adjacent fields using the <b>adjacencyMatrix[9][2]</b> variable.
+</p>
+</div>
+</div>
+<div id="outline-container-org8d9b324" class="outline-4">
+<h4 id="org8d9b324"><span class="section-number-4">4.4.2.</span> void get<sub>played</sub>(board game<sub>board</sub>, int *number, int player, int *squares)</h4>
+<div class="outline-text-4" id="text-4-4-2">
+<p>
+Stores the indices of the squares played by <b>player</b> to <b>squares</b> and the number to <b>number</b>.
+</p>
+</div>
+</div>
+<div id="outline-container-orgeb674bc" class="outline-4">
+<h4 id="orgeb674bc"><span class="section-number-4">4.4.3.</span> void get<sub>adjacent</sub>(board game<sub>board</sub>, int *number, int place, int *adjacents)</h4>
+<div class="outline-text-4" id="text-4-4-3">
+<p>
+Stores the indices of the empty squares adjacent to the square <b>place</b> in the array <b>adjacents</b> and the number to <b>number</b>.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb81ff8d" class="outline-4">
+<h4 id="orgb81ff8d"><span class="section-number-4">4.4.4.</span> board next<sub>board</sub>(board game<sub>board</sub>, int placement, int round)</h4>
+<div class="outline-text-4" id="text-4-4-4">
+<p>
+Returns a new board(or nullptr if the move is illegal) following the move <b>placement</b>. In the first 6 rounds it is treated as the index of the square to place the piece in, but after that, it is treated as follow:
+</p>
+
+<ul class="org-ul">
+<li>Placement / 3 is the index of the piece to move <b><b>in the array returned by get<sub>played</sub>()</b></b>.</li>
+<li>Placement % 3 is the index of the square to move TO <b><b>in the array returned by get<sub>adjacent</sub>()</b></b>.</li>
+</ul>
+<p>
+<img src="./assets/next_board.png" alt="next_board.png" />
+<img src="./assets/next_board_2.png" alt="next_board_2.png" />
+</p>
+</div>
+</div>
+<div id="outline-container-orge0f6f72" class="outline-4">
+<h4 id="orge0f6f72"><span class="section-number-4">4.4.5.</span> pair minimax(board game<sub>board</sub>, const bool maximizing, int n, int max<sub>depth</sub>)</h4>
+<div class="outline-text-4" id="text-4-4-5">
+
+<div id="org0ee79eb" class="figure">
+<p><img src="./assets/minimax.png" alt="minimax.png" />
+</p>
+</div>
+
+<p>
+A simple implementation of the minimax Algorithm to get the best possible move in a round <b>n</b> up until the round <b>max<sub>depth</sub></b>. Returns a pair of a best move and its evaluation.
+</p>
+
+
+<p>
+Minimax is a deterministic Algorithm that works on the structure of a Tree, and the concept of the &ldquo;Least Bad Move&rdquo; as a playing strategy.
+</p>
+</div>
+</div>
+<div id="outline-container-org988c672" class="outline-4">
+<h4 id="org988c672"><span class="section-number-4">4.4.6.</span> pair minimax<sub>mth</sub>(board game<sub>board</sub>, const bool maximizing, int n, int max<sub>depth</sub>, int thread<sub>count</sub>);</h4>
+<div class="outline-text-4" id="text-4-4-6">
+<p>
+Same as the one before, but with multithreading with the pthreads.h library, only works in UNIX for now.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-orgc91fedf" class="outline-3">
+<h3 id="orgc91fedf"><span class="section-number-3">4.5.</span> Game Modes:</h3>
+<div class="outline-text-3" id="text-4-5">
+</div>
+<div id="outline-container-orge291671" class="outline-4">
+<h4 id="orge291671"><span class="section-number-4">4.5.1.</span> Player VS Player:</h4>
+<div class="outline-text-4" id="text-4-5-1">
+<p>
+Self Explanatory, the game is played between two human players until one of them wins, or the maximum round is reached.
+</p>
+</div>
+</div>
+<div id="outline-container-org9fa620f" class="outline-4">
+<h4 id="org9fa620f"><span class="section-number-4">4.5.2.</span> Player VS AI:</h4>
+<div class="outline-text-4" id="text-4-5-2">
+<p>
+The game is played between an AI using the minimax algorithm (with a depth of <b>round + dls<sub>limit</sub></b>, or 8 rounds ahead) the player who plays first is picked before starting the game.
+</p>
+</div>
+</div>
+<div id="outline-container-orga98f8a0" class="outline-4">
+<h4 id="orga98f8a0"><span class="section-number-4">4.5.3.</span> AI VS AI:</h4>
+<div class="outline-text-4" id="text-4-5-3">
+<p>
+A mode to visualise a game between two AIs, possible configuration for each AI is:
+</p>
+<ul class="org-ul">
+<li>No Randomness (Same as Player VS AI, aka using minimax), two Non Random AIs playing against eachother will result in an infinite loop.</li>
+<li>Some Randomness: Plays using the minimax algorithm, but there is a chance of making a random move, this chance is determined by the entropy variable.</li>
+<li>All Randomness: All moves are random and unpredictable*.</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="outline-container-org91f77ca" class="outline-3">
+<h3 id="org91f77ca"><span class="section-number-3">4.6.</span> Windows/Linux differences:</h3>
+<div class="outline-text-3" id="text-4-6">
+</div>
+<div id="outline-container-org5a9df0f" class="outline-4">
+<h4 id="org5a9df0f"><span class="section-number-4">4.6.1.</span> Randomness:</h4>
+<div class="outline-text-4" id="text-4-6-1">
+<p>
+When building for Windows, <b>srand()</b> is used to handle randomness, alongside using time as the seed, which is cryptographically insecure. On GNU/Linux on the other hand, <b>arc4random</b> is used.
+</p>
+</div>
+</div>
+<div id="outline-container-orgb2982a4" class="outline-4">
+<h4 id="orgb2982a4"><span class="section-number-4">4.6.2.</span> Multithreading:</h4>
+<div class="outline-text-4" id="text-4-6-2">
+<p>
+When Building for windows, <b>minimax<sub>mth</sub></b> is NOT used as <b>pthreads.h</b> is not part of the C standard for Windows, and can&rsquo;t be used in mingw. On Linux however, its used with 2 threads as a sane default.
+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-org72a6217" class="outline-2">
+<h2 id="org72a6217"><span class="section-number-2">5.</span> License</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Copyright 2025 MOUHOUS Mathya &amp; AIT MEDDOUR Fouâd-Eddine
+</p>
+
+<p>
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+</p>
+
+<ol class="org-ol">
+<li>Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.</li>
+
+<li>Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.</li>
+
+<li>Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.</li>
+</ol>
+
+<p>
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</p>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Created: 2025-01-14 Tue 14:00</p>
+</div>
+</body>
+</html>
