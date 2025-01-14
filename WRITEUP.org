@@ -1,5 +1,6 @@
 #+title: Writeup
-
+[[./assets/Written-By-Human-Not-By-AI-Badge-white.png]]
+[[./assets/Developed-By-Human-Not-By-AI-Badge-white.png]]
 * Introduction:
 
 Achi is a Ghanian game that is similar to Tic-Tac-Toe, with the distinction of two phases and move sets rather than one, and the grid-like board (though it can be represented in the traditional Tic-Tac-Toe board). Players take turns placing one piece per round until both players have placed 3 pieces each, we call this *The Placement Phase*, we then enter the second phase *The Movement Phase* where players take turns moving pieces to one of their adjacent free spots. This is done until someone wins by forming a line (Horizontal, Vertical or Diagonal), or a draw if the game reaches the limited number of rounds.
@@ -45,7 +46,6 @@ A game board is made up of 9 squares which have an *occupied_by* attribute(Integ
 Making the Total Size of a single board: *728bytes*.
 
 ** Important Functions:
-++Obviously we can NOT go over the entire code base, as its more than 2K lines of code. So we will instead highlight the key functions that are reused throughout the project:++ Fuck it, we are doing exactly this. AI could never
 
 *** board create_board()
 Self explanatory, it creates a board, and returns it, it is defined in *include/game_board.h* and starts by allocating memory space for an array of 9 squares, and sets the *game_board* variable to its pointer. And Loops over the squares, setting the ownership to 0 for none, and fills in the adjacent fields using the *adjacencyMatrix[9][2]* variable.
@@ -91,3 +91,17 @@ A mode to visualise a game between two AIs, possible configuration for each AI i
 When building for Windows, *srand()* is used to handle randomness, alongside using time as the seed, which is cryptographically insecure. On GNU/Linux on the other hand, *arc4random* is used.
 *** Multithreading:
 When Building for windows, *minimax_mth* is NOT used as *pthreads.h* is not part of the C standard for Windows, and can't be used in mingw. On Linux however, its used with 2 threads as a sane default.
+
+
+* License
+Copyright 2025 MOUHOUS Mathya & AIT MEDDOUR Fouâd-Eddine
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
